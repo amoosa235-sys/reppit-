@@ -80,6 +80,12 @@ export default async function DashboardPage() {
           >
             Your unlocks
           </Link>
+          <Link
+            href="/business/catalogues"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Your catalogues
+          </Link>
         </div>
       )}
       {profile?.role === "admin" && (

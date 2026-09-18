@@ -81,16 +81,22 @@ order, **after** `reppit_schema.sql`:
    `distributor`, and enables RLS + policies on `distributor_details`
    (created by `001b` with RLS off entirely - open to any
    authenticated/anon caller until this runs).
-3. `reppit_migration_002_orders_progress.sql` — order lifecycle,
+3. `reppit_migration_001d_catalogues_rls.sql` — not part of the
+   provided set; same fix as `001c` but for `catalogues` and
+   `catalogue_items` (also created by `001b` with RLS off entirely).
+   Also adds the public `catalogue-photos` storage bucket, since
+   catalogues are browsable pre-unlock the same way provider profiles
+   are.
+5. `reppit_migration_002_orders_progress.sql` — order lifecycle,
    payments, delivery, order-linked messaging. Depends on `001b`
    (`catalogues`).
-4. `reppit_migration_003_enterprise.sql` — Enterprise area
+6. `reppit_migration_003_enterprise.sql` — Enterprise area
    subscriptions and discounted token pricing. No dependency on `001b`
    or `002`; can run any time after `reppit_schema.sql`.
-5. `reppit_migration_004_team_management.sql` — engagements + the
+7. `reppit_migration_004_team_management.sql` — engagements + the
    sales rep / merchandiser / marketing team dashboard. Depends on
    `002` (orders) and `003` (enterprise_subscriptions).
-6. `reppit_migration_005_payment_terms.sql` — engagement payment
+8. `reppit_migration_005_payment_terms.sql` — engagement payment
    terms (commission/retainer, Paystack Transfer Recipient reference
    only, no money movement). Depends on `004` (engagements) and `002`
    (orders).
