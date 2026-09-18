@@ -420,3 +420,28 @@ create policy ratings_insert on public.ratings
       where u.id = unlock_id and (b.user_id = auth.uid() or p.user_id = auth.uid())
     )
   );
+
+-- ---------------------------------------------------------------------------
+-- Auth: create the public.users row when someone signs up
+-- ---------------------------------------------------------------------------
+
+-- The app passes the chosen role ('business' or 'provider') as auth user
+-- metadata on signUp(); this trigger mirrors new auth.users rows into
+-- public.users so RLS policies elsewhere can key off role. Admin accounts
+-- are not self-service - promote a row to role = 'admin' manually in SQL.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.users (id, email, role)
+  values (new.id, new.email, coalesce(new.raw_user_meta_data->>'role', 'business'));
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
