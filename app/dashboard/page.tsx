@@ -43,12 +43,26 @@ export default async function DashboardPage() {
         </div>
       )}
       {profile?.role === "business" && (
-        <Link
-          href="/browse"
-          className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
-          Browse providers
-        </Link>
+        <div className="flex gap-4">
+          <Link
+            href="/business/profile"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Business profile
+          </Link>
+          <Link
+            href="/browse"
+            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
+          >
+            Browse providers
+          </Link>
+          <Link
+            href="/business/tokens"
+            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
+          >
+            Buy tokens
+          </Link>
+        </div>
       )}
       {profile?.role === "admin" && (
         <Link

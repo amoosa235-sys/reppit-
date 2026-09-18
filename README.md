@@ -58,6 +58,25 @@ browse/search, manual verification, token purchases (Paystack), unlock
 logistics, and the distributor category are designed for later phases
 and intentionally not built yet.
 
+## Token purchases (Paystack)
+
+`/business/tokens` reads active rows from `token_packs`, but there's no
+admin UI for managing that table yet — seed it by hand in Supabase, e.g.:
+
+```sql
+insert into token_packs (name, token_count, price_cents, active) values
+  ('Starter', 10, 15000, true),
+  ('Growth', 50, 60000, true);
+```
+
+`price_cents` is the amount in the smallest currency unit (matches
+what Paystack's API expects). Payments are verified twice - once when
+Paystack redirects the browser back to `/business/tokens/callback`,
+and again defensively via `/api/webhooks/paystack` (configure this URL
+in the Paystack dashboard once keys are live) - both paths are
+idempotent per payment reference, so a payment is never credited
+twice.
+
 ## Branding
 
 Logo assets (icon-transparent-512, icon-white-512) and favicon.ico are

@@ -512,3 +512,59 @@ create policy verification_documents_storage_delete_own on storage.objects
     bucket_id = 'verification-documents'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- ---------------------------------------------------------------------------
+-- Token purchases (Paystack)
+-- ---------------------------------------------------------------------------
+
+-- Postgres NULLs are distinct from each other, so this only enforces
+-- uniqueness among purchase rows (which always carry a reference);
+-- spend/refund rows stay NULL and are unaffected.
+alter table public.token_transactions
+  add constraint token_transactions_paystack_reference_key unique (paystack_reference);
+
+-- Atomically records a verified Paystack purchase and credits the
+-- business's balance in one step. The unique constraint above makes this
+-- idempotent: a reference already recorded returns false instead of
+-- crediting twice, so it's safe to call from both the callback redirect
+-- and the webhook for the same payment.
+--
+-- security definer so it can write token_transactions/token_balances
+-- despite those tables having no client-facing insert/update policies;
+-- execute is revoked from anon/authenticated below so only trusted
+-- server code (the service-role client) can call it - a business must
+-- never be able to invoke this directly with an arbitrary amount.
+create or replace function public.record_token_purchase(
+  p_reference text,
+  p_business_id uuid,
+  p_pack_id uuid,
+  p_token_count int
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_count int;
+begin
+  insert into token_transactions (business_id, type, token_count, token_pack_id, paystack_reference)
+  values (p_business_id, 'purchase', p_token_count, p_pack_id, p_reference)
+  on conflict (paystack_reference) do nothing;
+
+  get diagnostics v_count = row_count;
+
+  if v_count = 0 then
+    return false;
+  end if;
+
+  insert into token_balances (business_id, balance)
+  values (p_business_id, p_token_count)
+  on conflict (business_id) do update
+    set balance = token_balances.balance + excluded.balance;
+
+  return true;
+end;
+$$;
+
+revoke execute on function public.record_token_purchase(text, uuid, uuid, int) from public;
