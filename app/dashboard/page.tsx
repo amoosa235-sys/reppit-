@@ -58,6 +58,12 @@ export default async function DashboardPage() {
           >
             Orders
           </Link>
+          <Link
+            href="/provider/hubs"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Hubs
+          </Link>
         </div>
       )}
       {profile?.role === "business" && (
@@ -79,6 +85,12 @@ export default async function DashboardPage() {
             className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
           >
             Browse catalogues
+          </Link>
+          <Link
+            href="/loads"
+            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
+          >
+            Browse loads
           </Link>
           <Link
             href="/business/tokens"
@@ -103,6 +115,12 @@ export default async function DashboardPage() {
             className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
           >
             Orders
+          </Link>
+          <Link
+            href="/business/load-bookings"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Load bookings
           </Link>
         </div>
       )}

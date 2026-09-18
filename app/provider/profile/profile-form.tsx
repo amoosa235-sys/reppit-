@@ -6,7 +6,7 @@ import Image from "next/image";
 type Photo = { path: string; url: string };
 
 type Initial = {
-  category: "rep" | "printer" | "distributor";
+  category: "rep" | "printer" | "distributor" | "logistics";
   name: string;
   bio: string;
   province: string;
@@ -47,7 +47,7 @@ export function ProviderProfileForm({
   action: (formData: FormData) => void;
   initial: Initial;
 }) {
-  const [category, setCategory] = useState<"rep" | "printer" | "distributor">(initial.category);
+  const [category, setCategory] = useState<"rep" | "printer" | "distributor" | "logistics">(initial.category);
   const [coverageMethod, setCoverageMethod] = useState<"town_list" | "radius">(
     initial.distributor?.coverageMethod ?? "town_list",
   );
@@ -98,6 +98,16 @@ export function ProviderProfileForm({
             onChange={() => setCategory("distributor")}
           />
           Distributor
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="category"
+            value="logistics"
+            checked={category === "logistics"}
+            onChange={() => setCategory("logistics")}
+          />
+          Logistics
         </label>
       </fieldset>
 

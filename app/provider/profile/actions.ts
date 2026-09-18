@@ -44,7 +44,7 @@ export async function saveProviderProfile(formData: FormData) {
   const category = String(formData.get("category") ?? "");
   const name = String(formData.get("name") ?? "").trim();
 
-  if (category !== "rep" && category !== "printer" && category !== "distributor") {
+  if (category !== "rep" && category !== "printer" && category !== "distributor" && category !== "logistics") {
     redirect("/provider/profile?error=" + encodeURIComponent("Choose an account type."));
   }
   if (!name) {
@@ -99,7 +99,7 @@ export async function saveProviderProfile(formData: FormData) {
       },
       { onConflict: "provider_id" },
     );
-  } else {
+  } else if (category === "distributor") {
     await supabase.from("rep_details").delete().eq("provider_id", providerId);
     await supabase.from("printer_details").delete().eq("provider_id", providerId);
 
@@ -119,6 +119,13 @@ export async function saveProviderProfile(formData: FormData) {
       },
       { onConflict: "provider_profile_id" },
     );
+  } else {
+    // logistics: no dedicated details table - distribution_hubs (managed
+    // separately at /provider/hubs, since a provider may operate more
+    // than one) stands in as the category-specific profile.
+    await supabase.from("rep_details").delete().eq("provider_id", providerId);
+    await supabase.from("printer_details").delete().eq("provider_id", providerId);
+    await supabase.from("distributor_details").delete().eq("provider_profile_id", providerId);
   }
 
   const removePaths = new Set(formData.getAll("remove_photos").map(String));

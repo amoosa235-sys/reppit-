@@ -99,7 +99,27 @@ order, **after** `reppit_schema.sql`:
    catalogue unlock's counterpart, none of which existing policies
    accounted for. Adds `spend_tokens_for_catalogue_unlock`, the same
    locking/idempotency pattern as `spend_tokens_for_unlock`.
-6. `reppit_migration_002_orders_progress.sql` — order lifecycle,
+6. `reppit_migration_001f_logistics.sql` — not part of the provided
+   set; same RLS-off gap as `001c`/`001d`, now for `distribution_hubs`,
+   `consolidated_loads`, and `load_bookings`, plus widens
+   `provider_profiles.category` to add `logistics`. There's no
+   separate "logistics_details" table anywhere in the provided
+   migrations the way rep/printer/distributor each have one -
+   `distribution_hubs` (hub location + `routes_served`, already keyed
+   by `operator_provider_id`) stands in as that profile; a provider can
+   operate more than one hub. Adds `book_load()`, which - unlike the
+   unlock-spend functions - has no identity-based idempotency gate,
+   since `load_bookings` carries no uniqueness constraint and a second
+   booking on the same load by the same business is legitimate (more
+   space, not a duplicate); it locks and checks both the token balance
+   and the load's remaining capacity before booking. Also adds
+   `get_or_create_location()`, since `distribution_hubs.location_id` is
+   a hard FK to `locations(id)` (unlike `provider_profiles`/`businesses`,
+   which use free-text province/town per v1's "defer the full locality
+   dataset" decision) - the hub form stays plain province/town text
+   inputs, resolving or creating the matching `locations` row behind
+   the scenes.
+7. `reppit_migration_002_orders_progress.sql` — order lifecycle,
    payments, delivery, order-linked messaging. Depends on `001b`
    (`catalogues`).
 7. `reppit_migration_002a_orders_rls.sql` — not part of the provided

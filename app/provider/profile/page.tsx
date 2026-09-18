@@ -84,6 +84,14 @@ export default async function ProviderProfilePage({
           <Link href="/provider/verification" className="text-teal-300 underline">
             Submit verification documents
           </Link>
+          {providerProfile.category === "logistics" && (
+            <>
+              {" · "}
+              <Link href="/provider/hubs" className="text-teal-300 underline">
+                Manage your hubs
+              </Link>
+            </>
+          )}
         </p>
       )}
 
@@ -93,7 +101,7 @@ export default async function ProviderProfilePage({
       <ProviderProfileForm
         action={saveProviderProfile}
         initial={{
-          category: (providerProfile?.category as "rep" | "printer" | "distributor" | undefined) ?? "rep",
+          category: (providerProfile?.category as "rep" | "printer" | "distributor" | "logistics" | undefined) ?? "rep",
           name: providerProfile?.name ?? "",
           bio: providerProfile?.bio ?? "",
           province: providerProfile?.province ?? "",
