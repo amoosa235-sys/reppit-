@@ -52,6 +52,12 @@ export default async function DashboardPage() {
           >
             Annual subscription
           </Link>
+          <Link
+            href="/orders"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Orders
+          </Link>
         </div>
       )}
       {profile?.role === "business" && (
@@ -91,6 +97,12 @@ export default async function DashboardPage() {
             className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
           >
             Your catalogues
+          </Link>
+          <Link
+            href="/orders"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Orders
           </Link>
         </div>
       )}

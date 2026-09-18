@@ -102,13 +102,26 @@ order, **after** `reppit_schema.sql`:
 6. `reppit_migration_002_orders_progress.sql` — order lifecycle,
    payments, delivery, order-linked messaging. Depends on `001b`
    (`catalogues`).
-7. `reppit_migration_003_enterprise.sql` — Enterprise area
+7. `reppit_migration_002a_orders_rls.sql` — not part of the provided
+   set; `002` defined `orders`/`order_status_history` with no RLS at
+   all (same as `001b`'s tables before their fixes), added
+   `messages.order_id` but never extended `messages_insert` to
+   recognize it, and left no column to make a Paystack order payment
+   idempotent. Enables RLS on both new tables, adds a
+   `users_select_via_order` contact-reveal policy, adds the `order_id`
+   branch to `messages_insert`, adds `orders.paystack_reference` (+
+   unique constraint) and `record_order_payment`, and adds the private
+   `order-proofs` bucket for EFT proof-of-payment uploads — keyed by
+   `<order_id>/<file>`, not `<user_id>/<file>` like the other buckets,
+   since read access here is by order membership (buyer, seller, or
+   admin), not simply by who uploaded it.
+8. `reppit_migration_003_enterprise.sql` — Enterprise area
    subscriptions and discounted token pricing. No dependency on `001b`
    or `002`; can run any time after `reppit_schema.sql`.
-8. `reppit_migration_004_team_management.sql` — engagements + the
+9. `reppit_migration_004_team_management.sql` — engagements + the
    sales rep / merchandiser / marketing team dashboard. Depends on
    `002` (orders) and `003` (enterprise_subscriptions).
-9. `reppit_migration_005_payment_terms.sql` — engagement payment
+10. `reppit_migration_005_payment_terms.sql` — engagement payment
    terms (commission/retainer, Paystack Transfer Recipient reference
    only, no money movement). Depends on `004` (engagements) and `002`
    (orders).

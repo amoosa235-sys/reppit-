@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { sendMessage, submitRating } from "./actions";
+import { sendMessage, submitRating, createOrder } from "./actions";
 
 type UnlockRow = {
   id: string;
+  provider_id: string | null;
+  catalogue_id: string | null;
   businesses: { user_id: string; name: string } | null;
   provider_profiles: { user_id: string; name: string } | null;
   catalogues: { business_user_id: string; name: string } | null;
@@ -31,7 +33,9 @@ export default async function MessageThreadPage({
 
   const { data } = await supabase
     .from("unlocks")
-    .select("id, businesses(user_id, name), provider_profiles(user_id, name), catalogues(business_user_id, name)")
+    .select(
+      "id, provider_id, catalogue_id, businesses(user_id, name), provider_profiles(user_id, name), catalogues(business_user_id, name)",
+    )
     .eq("id", unlockId)
     .maybeSingle();
 
@@ -98,6 +102,17 @@ export default async function MessageThreadPage({
           .eq("rater_id", counterpartUserId)
           .maybeSingle()
       : { data: null };
+
+  const businessUserId = unlock.businesses?.user_id;
+  let ordersQuery = supabase
+    .from("orders")
+    .select("id, stage, price_total, created_at")
+    .eq("buyer_user_id", businessUserId ?? "")
+    .order("created_at", { ascending: false });
+  ordersQuery = isCatalogueUnlock
+    ? ordersQuery.eq("catalogue_id", unlock.catalogue_id ?? "")
+    : ordersQuery.eq("provider_profile_id", unlock.provider_id ?? "");
+  const { data: orders } = await ordersQuery;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
@@ -193,6 +208,62 @@ export default async function MessageThreadPage({
         )}
       </section>
       )}
+
+      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
+        <h2 className="font-semibold text-teal-300">Orders</h2>
+
+        {!orders || orders.length === 0 ? (
+          <p className="text-sm text-navy-100">No orders yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {orders.map((o) => (
+              <li key={o.id}>
+                <Link
+                  href={`/orders/${o.id}`}
+                  className="flex items-center justify-between rounded border border-navy-500 p-3 text-sm hover:bg-navy-800"
+                >
+                  <span className="capitalize">{o.stage.replace(/_/g, " ")}</span>
+                  <span>R{o.price_total}</span>
+                  <span className="text-navy-200">{new Date(o.created_at).toLocaleDateString()}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {isBusiness && (
+          <form action={createOrder} className="flex flex-col gap-2">
+            <input type="hidden" name="unlock_id" value={unlockId} />
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-navy-100">Description</span>
+              <textarea name="description" rows={2} className="rounded px-3 py-2 text-navy-900" />
+            </label>
+            <div className="flex gap-4">
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Quantity</span>
+                <input type="number" min={0} name="quantity" className="rounded px-3 py-2 text-navy-900" />
+              </label>
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Total price (R)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  name="price_total"
+                  required
+                  className="rounded px-3 py-2 text-navy-900"
+                />
+              </label>
+            </div>
+            <button
+              type="submit"
+              className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
+            >
+              Create order
+            </button>
+          </form>
+        )}
+      </section>
 
       <Link href="/dashboard" className="text-sm text-teal-300 underline">
         Back to dashboard

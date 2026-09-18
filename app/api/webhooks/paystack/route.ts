@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import crypto from "node:crypto";
 import { creditTokenPurchase } from "@/lib/tokens";
 import { activateProviderSubscription } from "@/lib/subscriptions";
+import { creditOrderPayment } from "@/lib/orders";
 
 export async function POST(request: NextRequest) {
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
@@ -30,6 +31,8 @@ export async function POST(request: NextRequest) {
     try {
       if (type === "provider_subscription") {
         await activateProviderSubscription(event.data.reference);
+      } else if (type === "order_payment") {
+        await creditOrderPayment(event.data.reference);
       } else {
         // Token purchases predate the type discriminator, so treat an
         // unrecognized/missing type as one too rather than dropping it.
