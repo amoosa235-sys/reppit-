@@ -20,6 +20,9 @@ export default function Home() {
         >
           Log in
         </Link>
+        <Link href="/browse" className="text-teal-300 underline">
+          Browse providers
+        </Link>
       </div>
     </main>
   );

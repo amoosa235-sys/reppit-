@@ -34,6 +34,14 @@ export default async function DashboardPage() {
           Manage your provider profile
         </Link>
       )}
+      {profile?.role === "business" && (
+        <Link
+          href="/browse"
+          className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
+        >
+          Browse providers
+        </Link>
+      )}
       <form action={signOut}>
         <button
           type="submit"
