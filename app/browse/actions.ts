@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { unlockCostForTier } from "@/lib/unlocks";
+import { getEnterpriseDiscountPct, applyDiscount } from "@/lib/enterprise-discount";
 
 export async function unlockProvider(formData: FormData) {
   const supabase = await createClient();
@@ -38,7 +39,7 @@ export async function unlockProvider(formData: FormData) {
   const providerId = String(formData.get("provider_id") ?? "");
   const { data: provider } = await supabase
     .from("provider_profiles")
-    .select("id, tier")
+    .select("id, tier, province, town")
     .eq("id", providerId)
     .maybeSingle();
 
@@ -46,7 +47,12 @@ export async function unlockProvider(formData: FormData) {
     redirect("/browse?error=" + encodeURIComponent("Provider not found."));
   }
 
-  const cost = unlockCostForTier(provider.tier);
+  const baseCost = unlockCostForTier(provider.tier);
+  const discountPct = await getEnterpriseDiscountPct(supabase, user.id, {
+    province: provider.province,
+    town: provider.town,
+  });
+  const cost = applyDiscount(baseCost, discountPct);
 
   const { error } = await supabase.rpc("spend_tokens_for_unlock", {
     p_business_id: business.id,

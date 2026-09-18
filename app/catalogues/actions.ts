@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CATALOGUE_UNLOCK_COST } from "@/lib/unlocks";
+import { getEnterpriseDiscountPct, applyDiscount } from "@/lib/enterprise-discount";
 
 export async function unlockCatalogue(formData: FormData) {
   const supabase = await createClient();
@@ -38,7 +39,7 @@ export async function unlockCatalogue(formData: FormData) {
   const catalogueId = String(formData.get("catalogue_id") ?? "");
   const { data: catalogue } = await supabase
     .from("catalogues")
-    .select("id")
+    .select("id, business_user_id")
     .eq("id", catalogueId)
     .maybeSingle();
 
@@ -46,10 +47,26 @@ export async function unlockCatalogue(formData: FormData) {
     redirect("/catalogues?error=" + encodeURIComponent("Catalogue not found."));
   }
 
+  // catalogues has no location of its own - the closest available signal
+  // is the publishing business's own province/town, since catalogues
+  // and businesses each independently reference users(id) with no direct
+  // FK between them to embed in one query.
+  const { data: ownerBusiness } = await supabase
+    .from("businesses")
+    .select("province, town")
+    .eq("user_id", catalogue.business_user_id)
+    .maybeSingle();
+
+  const discountPct = await getEnterpriseDiscountPct(supabase, user.id, {
+    province: ownerBusiness?.province ?? null,
+    town: ownerBusiness?.town ?? null,
+  });
+  const cost = applyDiscount(CATALOGUE_UNLOCK_COST, discountPct);
+
   const { error } = await supabase.rpc("spend_tokens_for_catalogue_unlock", {
     p_business_id: business.id,
     p_catalogue_id: catalogue.id,
-    p_tokens: CATALOGUE_UNLOCK_COST,
+    p_tokens: cost,
   });
 
   if (error) {
