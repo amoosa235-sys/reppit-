@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { sendMessage } from "./actions";
+import { sendMessage, submitRating } from "./actions";
 
 type UnlockRow = {
   id: string;
@@ -60,6 +60,22 @@ export default async function MessageThreadPage({
     .eq("unlock_id", unlockId)
     .order("created_at", { ascending: true });
 
+  const { data: myRating } = await supabase
+    .from("ratings")
+    .select("rating, comment")
+    .eq("unlock_id", unlockId)
+    .eq("rater_id", user.id)
+    .maybeSingle();
+
+  const { data: theirRating } = counterpartUserId
+    ? await supabase
+        .from("ratings")
+        .select("rating, comment")
+        .eq("unlock_id", unlockId)
+        .eq("rater_id", counterpartUserId)
+        .maybeSingle()
+    : { data: null };
+
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
       <div>
@@ -107,6 +123,51 @@ export default async function MessageThreadPage({
           Send
         </button>
       </form>
+
+      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
+        <h2 className="font-semibold text-teal-300">Rating</h2>
+
+        {myRating ? (
+          <p className="text-sm text-navy-100">
+            You rated {counterpartName ?? "them"}: {myRating.rating}/5
+            {myRating.comment && ` - "${myRating.comment}"`}
+          </p>
+        ) : (
+          <form action={submitRating} className="flex flex-col gap-2">
+            <input type="hidden" name="unlock_id" value={unlockId} />
+            <input type="hidden" name="ratee_id" value={counterpartUserId ?? ""} />
+            <label className="flex flex-col gap-1 text-sm">
+              <span className="text-navy-100">Rate {counterpartName ?? "them"}</span>
+              <select name="rating" required defaultValue="5" className="rounded px-3 py-2 text-navy-900">
+                <option value="5">5 - Excellent</option>
+                <option value="4">4 - Good</option>
+                <option value="3">3 - Okay</option>
+                <option value="2">2 - Poor</option>
+                <option value="1">1 - Bad</option>
+              </select>
+            </label>
+            <textarea
+              name="comment"
+              rows={2}
+              placeholder="Optional comment"
+              className="rounded px-3 py-2 text-navy-900"
+            />
+            <button
+              type="submit"
+              className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
+            >
+              Submit rating
+            </button>
+          </form>
+        )}
+
+        {theirRating && (
+          <p className="text-sm text-navy-200">
+            {counterpartName ?? "They"} rated you: {theirRating.rating}/5
+            {theirRating.comment && ` - "${theirRating.comment}"`}
+          </p>
+        )}
+      </section>
 
       <Link href="/dashboard" className="text-sm text-teal-300 underline">
         Back to dashboard

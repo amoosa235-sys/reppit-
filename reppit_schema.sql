@@ -661,3 +661,27 @@ end;
 $$;
 
 revoke execute on function public.spend_tokens_for_unlock(uuid, uuid, int) from public;
+
+-- ---------------------------------------------------------------------------
+-- Ratings: pin ratee_id to the unlock counterpart
+-- ---------------------------------------------------------------------------
+
+-- Same gap the original messages_insert policy had: it checked that the
+-- rater belonged to the unlock but never that ratee_id was the rater's
+-- actual counterpart in it, so a rater could rate an unrelated user while
+-- citing a real unlock_id.
+drop policy if exists ratings_insert on public.ratings;
+create policy ratings_insert on public.ratings
+  for insert with check (
+    rater_id = auth.uid()
+    and exists (
+      select 1 from public.unlocks u
+      join public.businesses b on b.id = u.business_id
+      join public.provider_profiles p on p.id = u.provider_id
+      where u.id = unlock_id
+        and (
+          (b.user_id = auth.uid() and p.user_id = ratee_id)
+          or (p.user_id = auth.uid() and b.user_id = ratee_id)
+        )
+    )
+  );
