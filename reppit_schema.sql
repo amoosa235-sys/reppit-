@@ -568,3 +568,96 @@ end;
 $$;
 
 revoke execute on function public.record_token_purchase(text, uuid, uuid, int) from public;
+
+-- ---------------------------------------------------------------------------
+-- Unlocks: contact reveal + spend
+-- ---------------------------------------------------------------------------
+
+-- Lets the two parties in an unlock read each other's account email -
+-- otherwise "unlock a provider's contact info" has nothing to reveal, since
+-- neither provider_profiles nor businesses store contact details directly.
+create policy users_select_via_unlock on public.users
+  for select using (
+    exists (
+      select 1 from public.unlocks u
+      join public.businesses b on b.id = u.business_id
+      join public.provider_profiles p on p.id = u.provider_id
+      where (b.user_id = auth.uid() and p.user_id = users.id)
+         or (p.user_id = auth.uid() and b.user_id = users.id)
+    )
+  );
+
+-- Tightens messages_insert (defined earlier) to also pin recipient_id to
+-- the sender's actual counterpart in the unlock, not just any user id -
+-- as originally written, a sender could piggyback a legitimate unlock_id
+-- to message an unrelated third party.
+drop policy if exists messages_insert on public.messages;
+create policy messages_insert on public.messages
+  for insert with check (
+    sender_id = auth.uid()
+    and exists (
+      select 1 from public.unlocks u
+      join public.businesses b on b.id = u.business_id
+      join public.provider_profiles p on p.id = u.provider_id
+      where u.id = unlock_id
+        and (
+          (b.user_id = auth.uid() and p.user_id = recipient_id)
+          or (p.user_id = auth.uid() and b.user_id = recipient_id)
+        )
+    )
+  );
+
+-- Atomically charges a business for unlocking a provider and records the
+-- unlock, or - if that pair is already unlocked - charges nothing and
+-- returns false, satisfying uq_unlocks_provider without a second RPC round
+-- trip. Locks the balance row first so two concurrent unlock attempts for
+-- the same business can't both pass the balance check.
+--
+-- security definer + execute revoked from anon/authenticated for the same
+-- reason as record_token_purchase: this moves tokens, so only trusted
+-- server code may call it.
+create or replace function public.spend_tokens_for_unlock(
+  p_business_id uuid,
+  p_provider_id uuid,
+  p_tokens int
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_balance int;
+  v_count int;
+begin
+  select balance into v_balance
+  from token_balances
+  where business_id = p_business_id
+  for update;
+
+  if v_balance is null or v_balance < p_tokens then
+    raise exception 'insufficient_tokens';
+  end if;
+
+  insert into unlocks (business_id, provider_id, tokens_spent)
+  values (p_business_id, p_provider_id, p_tokens)
+  on conflict on constraint uq_unlocks_provider do nothing;
+
+  get diagnostics v_count = row_count;
+
+  if v_count = 0 then
+    return false;
+  end if;
+
+  update token_balances set balance = balance - p_tokens where business_id = p_business_id;
+
+  insert into token_transactions (business_id, type, token_count, unlock_id)
+  select p_business_id, 'spend', p_tokens, u.id
+  from unlocks u
+  where u.business_id = p_business_id and u.provider_id = p_provider_id;
+
+  return true;
+end;
+$$;
+
+revoke execute on function public.spend_tokens_for_unlock(uuid, uuid, int) from public;

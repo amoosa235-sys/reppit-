@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { unlockCostForTier } from "@/lib/unlocks";
+import { unlockProvider } from "./actions";
 
 type Tier = "entry" | "verified" | "premium";
 type Category = "rep" | "printer";
@@ -32,7 +34,7 @@ const CATEGORY_LABEL: Record<Category, string> = {
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; province?: string; tier?: string; town?: string }>;
+  searchParams: Promise<{ category?: string; province?: string; tier?: string; town?: string; error?: string }>;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -46,6 +48,32 @@ export default async function BrowsePage({
     .order("name", { ascending: true });
 
   const all = (data ?? []) as unknown as ProviderRow[];
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let businessId: string | null = null;
+  let unlockedProviders = new Map<string, string>();
+
+  if (user) {
+    const { data: account } = await supabase.from("users").select("role").eq("id", user.id).single();
+    if (account?.role === "business") {
+      const { data: business } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (business) {
+        businessId = business.id;
+        const { data: unlocks } = await supabase
+          .from("unlocks")
+          .select("id, provider_id")
+          .eq("business_id", business.id);
+        unlockedProviders = new Map((unlocks ?? []).map((u) => [u.provider_id, u.id]));
+      }
+    }
+  }
 
   const selectedCategory = params.category === "rep" || params.category === "printer" ? params.category : "";
   const selectedProvince = params.province ?? "";
@@ -93,6 +121,7 @@ export default async function BrowsePage({
       <h1 className="text-2xl font-bold text-teal-300">Browse providers</h1>
 
       {error && <p className="text-sm text-red-300">Could not load providers: {error.message}</p>}
+      {params.error && <p className="text-sm text-red-300">{params.error}</p>}
 
       {all.length === 0 && !error ? (
         <p className="text-navy-100">No providers have listed yet - check back soon.</p>
@@ -193,6 +222,26 @@ export default async function BrowsePage({
                       </p>
                       {detail && <p className="text-xs text-navy-200">{detail}</p>}
                       {p.bio && <p className="text-sm text-navy-100">{p.bio}</p>}
+
+                      {businessId &&
+                        (unlockedProviders.has(p.id) ? (
+                          <Link
+                            href={`/messages/${unlockedProviders.get(p.id)}`}
+                            className="mt-1 w-fit rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
+                          >
+                            Message
+                          </Link>
+                        ) : (
+                          <form action={unlockProvider}>
+                            <input type="hidden" name="provider_id" value={p.id} />
+                            <button
+                              type="submit"
+                              className="mt-1 rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
+                            >
+                              Unlock ({unlockCostForTier(p.tier)} tokens)
+                            </button>
+                          </form>
+                        ))}
                     </div>
                   </article>
                 );
