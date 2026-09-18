@@ -5,7 +5,7 @@ import { unlockCostForTier } from "@/lib/unlocks";
 import { unlockProvider } from "./actions";
 
 type Tier = "entry" | "verified" | "premium";
-type Category = "rep" | "printer";
+type Category = "rep" | "printer" | "distributor";
 
 type ProviderRow = {
   id: string;
@@ -18,6 +18,7 @@ type ProviderRow = {
   photos: string[] | null;
   rep_details: { industries: string[] | null } | null;
   printer_details: { print_types: string[] | null } | null;
+  distributor_details: { product_categories_sought: string[] | null } | null;
 };
 
 const TIER_LABEL: Record<Tier, string> = {
@@ -29,6 +30,7 @@ const TIER_LABEL: Record<Tier, string> = {
 const CATEGORY_LABEL: Record<Category, string> = {
   rep: "Sales rep",
   printer: "Printer",
+  distributor: "Distributor",
 };
 
 export default async function BrowsePage({
@@ -42,7 +44,7 @@ export default async function BrowsePage({
   const { data, error } = await supabase
     .from("provider_profiles")
     .select(
-      "id, category, name, bio, province, town, tier, photos, rep_details(industries), printer_details(print_types)",
+      "id, category, name, bio, province, town, tier, photos, rep_details(industries), printer_details(print_types), distributor_details(product_categories_sought)",
     )
     .order("tier", { ascending: false })
     .order("name", { ascending: true });
@@ -75,7 +77,10 @@ export default async function BrowsePage({
     }
   }
 
-  const selectedCategory = params.category === "rep" || params.category === "printer" ? params.category : "";
+  const selectedCategory =
+    params.category === "rep" || params.category === "printer" || params.category === "distributor"
+      ? params.category
+      : "";
   const selectedProvince = params.province ?? "";
   const selectedTier = params.tier === "entry" || params.tier === "verified" || params.tier === "premium" ? params.tier : "";
   const townQuery = (params.town ?? "").trim().toLowerCase();
@@ -112,7 +117,9 @@ export default async function BrowsePage({
     }
   }
 
-  const availableCategories = (["rep", "printer"] as Category[]).filter((c) => categoryCounts.has(c));
+  const availableCategories = (["rep", "printer", "distributor"] as Category[]).filter((c) =>
+    categoryCounts.has(c),
+  );
   const availableProvinces = [...provinceCounts.keys()].sort();
   const availableTiers = (["premium", "verified", "entry"] as Tier[]).filter((t) => tierCounts.has(t));
 
@@ -204,7 +211,9 @@ export default async function BrowsePage({
                 const detail =
                   p.category === "rep"
                     ? p.rep_details?.industries?.join(", ")
-                    : p.printer_details?.print_types?.join(", ");
+                    : p.category === "printer"
+                      ? p.printer_details?.print_types?.join(", ")
+                      : p.distributor_details?.product_categories_sought?.join(", ");
 
                 return (
                   <article key={p.id} className="flex gap-4 rounded border border-navy-500 p-4">

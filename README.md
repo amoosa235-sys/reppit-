@@ -74,16 +74,23 @@ order, **after** `reppit_schema.sql`:
    fix (drop that `NOT NULL`, add an exclusivity check, split the
    unique constraint) before they'll actually work; that lands with
    the catalogue-unlock feature, not this migration.
-2. `reppit_migration_002_orders_progress.sql` — order lifecycle,
+2. `reppit_migration_001c_distributor_rls.sql` — not part of the
+   provided set; fills two gaps `001b` left open so the distributor
+   category actually works: widens `provider_profiles.category`'s
+   check constraint (still v1's `rep`/`printer` only) to add
+   `distributor`, and enables RLS + policies on `distributor_details`
+   (created by `001b` with RLS off entirely - open to any
+   authenticated/anon caller until this runs).
+3. `reppit_migration_002_orders_progress.sql` — order lifecycle,
    payments, delivery, order-linked messaging. Depends on `001b`
    (`catalogues`).
-3. `reppit_migration_003_enterprise.sql` — Enterprise area
+4. `reppit_migration_003_enterprise.sql` — Enterprise area
    subscriptions and discounted token pricing. No dependency on `001b`
    or `002`; can run any time after `reppit_schema.sql`.
-4. `reppit_migration_004_team_management.sql` — engagements + the
+5. `reppit_migration_004_team_management.sql` — engagements + the
    sales rep / merchandiser / marketing team dashboard. Depends on
    `002` (orders) and `003` (enterprise_subscriptions).
-5. `reppit_migration_005_payment_terms.sql` — engagement payment
+6. `reppit_migration_005_payment_terms.sql` — engagement payment
    terms (commission/retainer, Paystack Transfer Recipient reference
    only, no money movement). Depends on `004` (engagements) and `002`
    (orders).

@@ -10,7 +10,7 @@ type PendingDoc = {
   provider_profiles: {
     id: string;
     name: string;
-    category: "rep" | "printer";
+    category: "rep" | "printer" | "distributor";
     tier: string;
     verification_status: string;
     users: { email: string } | null;

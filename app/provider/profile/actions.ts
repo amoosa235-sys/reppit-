@@ -44,7 +44,7 @@ export async function saveProviderProfile(formData: FormData) {
   const category = String(formData.get("category") ?? "");
   const name = String(formData.get("name") ?? "").trim();
 
-  if (category !== "rep" && category !== "printer") {
+  if (category !== "rep" && category !== "printer" && category !== "distributor") {
     redirect("/provider/profile?error=" + encodeURIComponent("Choose an account type."));
   }
   if (!name) {
@@ -75,6 +75,7 @@ export async function saveProviderProfile(formData: FormData) {
 
   if (category === "rep") {
     await supabase.from("printer_details").delete().eq("provider_id", providerId);
+    await supabase.from("distributor_details").delete().eq("provider_profile_id", providerId);
     await supabase.from("rep_details").upsert(
       {
         provider_id: providerId,
@@ -85,8 +86,9 @@ export async function saveProviderProfile(formData: FormData) {
       },
       { onConflict: "provider_id" },
     );
-  } else {
+  } else if (category === "printer") {
     await supabase.from("rep_details").delete().eq("provider_id", providerId);
+    await supabase.from("distributor_details").delete().eq("provider_profile_id", providerId);
     await supabase.from("printer_details").upsert(
       {
         provider_id: providerId,
@@ -96,6 +98,26 @@ export async function saveProviderProfile(formData: FormData) {
         max_print_size: String(formData.get("max_print_size") ?? "").trim() || null,
       },
       { onConflict: "provider_id" },
+    );
+  } else {
+    await supabase.from("rep_details").delete().eq("provider_id", providerId);
+    await supabase.from("printer_details").delete().eq("provider_id", providerId);
+
+    const coverageMethod = String(formData.get("coverage_method") ?? "town_list");
+
+    await supabase.from("distributor_details").upsert(
+      {
+        provider_profile_id: providerId,
+        product_categories_sought: splitList(formData.get("product_categories_sought")),
+        coverage_method: coverageMethod === "radius" ? "radius" : "town_list",
+        covered_towns: coverageMethod === "radius" ? [] : splitList(formData.get("covered_towns")),
+        hub_town: coverageMethod === "radius" ? String(formData.get("hub_town") ?? "").trim() || null : null,
+        radius_km: coverageMethod === "radius" ? toIntOrNull(formData.get("radius_km")) : null,
+        coverage_scope: String(formData.get("coverage_scope") ?? "single_town"),
+        min_order_qty: toIntOrNull(formData.get("min_order_qty")),
+        portfolio_gap_notes: String(formData.get("portfolio_gap_notes") ?? "").trim() || null,
+      },
+      { onConflict: "provider_profile_id" },
     );
   }
 

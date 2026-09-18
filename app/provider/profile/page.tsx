@@ -38,6 +38,7 @@ export default async function ProviderProfilePage({
 
   let repDetails = null;
   let printerDetails = null;
+  let distributorDetails = null;
 
   if (providerProfile) {
     if (providerProfile.category === "rep") {
@@ -54,6 +55,15 @@ export default async function ProviderProfilePage({
         .eq("provider_id", providerProfile.id)
         .maybeSingle();
       printerDetails = data;
+    } else if (providerProfile.category === "distributor") {
+      const { data } = await supabase
+        .from("distributor_details")
+        .select(
+          "product_categories_sought, coverage_method, covered_towns, hub_town, radius_km, coverage_scope, min_order_qty, portfolio_gap_notes",
+        )
+        .eq("provider_profile_id", providerProfile.id)
+        .maybeSingle();
+      distributorDetails = data;
     }
   }
 
@@ -83,7 +93,7 @@ export default async function ProviderProfilePage({
       <ProviderProfileForm
         action={saveProviderProfile}
         initial={{
-          category: (providerProfile?.category as "rep" | "printer" | undefined) ?? "rep",
+          category: (providerProfile?.category as "rep" | "printer" | "distributor" | undefined) ?? "rep",
           name: providerProfile?.name ?? "",
           bio: providerProfile?.bio ?? "",
           province: providerProfile?.province ?? "",
@@ -103,6 +113,18 @@ export default async function ProviderProfilePage({
                 turnaroundDays: printerDetails.turnaround_days?.toString() ?? "",
                 equipment: printerDetails.equipment ?? "",
                 maxPrintSize: printerDetails.max_print_size ?? "",
+              }
+            : undefined,
+          distributor: distributorDetails
+            ? {
+                productCategoriesSought: (distributorDetails.product_categories_sought ?? []).join(", "),
+                coverageMethod: (distributorDetails.coverage_method as "town_list" | "radius") ?? "town_list",
+                coveredTowns: (distributorDetails.covered_towns ?? []).join(", "),
+                hubTown: distributorDetails.hub_town ?? "",
+                radiusKm: distributorDetails.radius_km?.toString() ?? "",
+                coverageScope: distributorDetails.coverage_scope ?? "single_town",
+                minOrderQty: distributorDetails.min_order_qty?.toString() ?? "",
+                portfolioGapNotes: distributorDetails.portfolio_gap_notes ?? "",
               }
             : undefined,
         }}
