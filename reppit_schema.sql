@@ -685,3 +685,42 @@ create policy ratings_insert on public.ratings
         )
     )
   );
+
+-- ---------------------------------------------------------------------------
+-- Provider annual fee (Paystack)
+-- ---------------------------------------------------------------------------
+
+alter table public.provider_subscriptions
+  add constraint provider_subscriptions_paystack_reference_key unique (paystack_reference);
+
+-- Same idempotency pattern as record_token_purchase: the unique constraint
+-- above makes a second call for the same reference (callback + webhook
+-- both firing) a no-op instead of a duplicate active period. Deliberately
+-- does not touch provider_profiles.tier - that stays owned by the manual
+-- verification flow (feature 5); this only records that the annual fee for
+-- a tier was paid.
+create or replace function public.record_provider_subscription(
+  p_reference text,
+  p_provider_id uuid,
+  p_tier text,
+  p_amount_cents int
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_count int;
+begin
+  insert into provider_subscriptions (provider_id, tier, amount_cents, status, paystack_reference, starts_at, expires_at)
+  values (p_provider_id, p_tier, p_amount_cents, 'active', p_reference, now(), now() + interval '1 year')
+  on conflict (paystack_reference) do nothing;
+
+  get diagnostics v_count = row_count;
+
+  return v_count > 0;
+end;
+$$;
+
+revoke execute on function public.record_provider_subscription(text, uuid, text, int) from public;

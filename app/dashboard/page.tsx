@@ -46,6 +46,12 @@ export default async function DashboardPage() {
           >
             Businesses that unlocked you
           </Link>
+          <Link
+            href="/provider/subscription"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Annual subscription
+          </Link>
         </div>
       )}
       {profile?.role === "business" && (

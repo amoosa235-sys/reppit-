@@ -77,6 +77,28 @@ in the Paystack dashboard once keys are live) - both paths are
 idempotent per payment reference, so a payment is never credited
 twice.
 
+## Provider annual fee (Paystack)
+
+`/provider/subscription` charges a fixed annual fee for the `verified`
+and `premium` tiers, hardcoded in `lib/subscriptions.ts`
+(`ANNUAL_FEE_CENTS`) since there's no pricing table for it — edit that
+file to change pricing. `entry` isn't billable; it's the free default
+every provider profile starts on.
+
+Paying the fee records an "active" row in `provider_subscriptions`
+with a one-year expiry - it does **not** change
+`provider_profiles.tier`. Tier stays owned by manual verification
+(admin sets it after reviewing documents); this only tracks whether
+the annual fee for a given tier has been paid. If you want a paid
+subscription to actually elevate the profile tier, that's a
+deliberate design decision to revisit, not an oversight.
+
+Same verify-twice pattern as token purchases: the callback route and
+`/api/webhooks/paystack` both call `record_provider_subscription`,
+which is idempotent per payment reference. The shared webhook
+distinguishes a token purchase from a subscription payment via a
+`type` field in the Paystack transaction metadata.
+
 ## Branding
 
 Logo assets (icon-transparent-512, icon-white-512) and favicon.ico are
