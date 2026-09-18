@@ -64,6 +64,12 @@ export default async function DashboardPage() {
           >
             Hubs
           </Link>
+          <Link
+            href="/engagements"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Engagements
+          </Link>
         </div>
       )}
       {profile?.role === "business" && (
@@ -127,6 +133,12 @@ export default async function DashboardPage() {
             className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
           >
             Enterprise
+          </Link>
+          <Link
+            href="/engagements"
+            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
+          >
+            Engagements
           </Link>
         </div>
       )}

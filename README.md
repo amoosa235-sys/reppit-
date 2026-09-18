@@ -156,10 +156,23 @@ order, **after** `reppit_schema.sql`:
     this one before" for that, hence the log table. Run after `003` and
     `004` (needs `004`'s `trial_ends_at` for the trial flow to make
     sense, even though its own SQL only requires `003`).
-11. `reppit_migration_005_payment_terms.sql` — engagement payment
-   terms (commission/retainer, Paystack Transfer Recipient reference
-   only, no money movement). Depends on `004` (engagements) and `002`
-   (orders).
+11. `reppit_migration_004a_team_rls.sql` — not part of the provided
+    set; same RLS-off gap as everywhere else, now for `engagements`,
+    `store_returns`, `refunds`, `damages`, `stock_reports`,
+    `marketing_campaigns`, `marketing_assets`. `004`'s own note said
+    "gated in application logic" for Enterprise access but never
+    defined a gate to call - adds `has_enterprise_access()` and
+    `engagement_has_enterprise_access()` (both security definer, since
+    the actor inserting a child row - e.g. a provider filing a stock
+    report - has no RLS visibility into the business's own
+    subscription row). Also adds the `engagement_id` branch to
+    `messages_insert` (same gap `002a` found for `order_id`), and the
+    private `team-management` storage bucket for damage photos, stock
+    report photos, and marketing assets. Run after `004`.
+12. `reppit_migration_005_payment_terms.sql` — engagement payment
+    terms (commission/retainer, Paystack Transfer Recipient reference
+    only, no money movement). Depends on `004` (engagements) and `002`
+    (orders).
 
 These are provided files, not authored from this codebase's
 conventions — e.g. `enterprise_subscriptions.business_user_id`

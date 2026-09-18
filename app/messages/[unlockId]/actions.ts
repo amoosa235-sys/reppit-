@@ -107,6 +107,62 @@ export async function createOrder(formData: FormData) {
   redirect(`/orders/${order.id}`);
 }
 
+export async function createEngagement(formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const unlockId = String(formData.get("unlock_id") ?? "");
+
+  const { data: unlock } = await supabase
+    .from("unlocks")
+    .select("id, provider_id, businesses(user_id)")
+    .eq("id", unlockId)
+    .maybeSingle();
+
+  if (!unlock || !unlock.provider_id) {
+    redirect(`/messages/${unlockId}?error=` + encodeURIComponent("Engagements are only for provider unlocks."));
+  }
+
+  const businessUserId = (unlock.businesses as unknown as { user_id: string } | null)?.user_id;
+
+  if (businessUserId !== user.id) {
+    redirect(
+      `/messages/${unlockId}?error=` +
+        encodeURIComponent("Only the unlocking business can start an engagement here."),
+    );
+  }
+
+  const { data: hasAccess } = await supabase.rpc("has_enterprise_access", { p_user_id: user.id });
+
+  if (!hasAccess) {
+    redirect(
+      "/business/enterprise?error=" +
+        encodeURIComponent("Team management needs an active or trialling Enterprise subscription."),
+    );
+  }
+
+  const { data: engagement, error } = await supabase
+    .from("engagements")
+    .insert({ business_user_id: user.id, provider_profile_id: unlock.provider_id, unlock_id: unlockId })
+    .select("id")
+    .single();
+
+  if (error || !engagement) {
+    redirect(
+      `/messages/${unlockId}?error=` + encodeURIComponent(error?.message ?? "Could not start engagement."),
+    );
+  }
+
+  redirect(`/engagements/${engagement.id}`);
+}
+
 export async function submitRating(formData: FormData) {
   const supabase = await createClient();
 

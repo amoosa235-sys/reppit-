@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { sendMessage, submitRating, createOrder } from "./actions";
+import { sendMessage, submitRating, createOrder, createEngagement } from "./actions";
 
 type UnlockRow = {
   id: string;
@@ -113,6 +113,14 @@ export default async function MessageThreadPage({
     ? ordersQuery.eq("catalogue_id", unlock.catalogue_id ?? "")
     : ordersQuery.eq("provider_profile_id", unlock.provider_id ?? "");
   const { data: orders } = await ordersQuery;
+
+  const { data: engagements } = !isCatalogueUnlock
+    ? await supabase
+        .from("engagements")
+        .select("id, status, started_at")
+        .eq("unlock_id", unlockId)
+        .order("started_at", { ascending: false })
+    : { data: null };
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
@@ -264,6 +272,45 @@ export default async function MessageThreadPage({
           </form>
         )}
       </section>
+
+      {!isCatalogueUnlock && (
+        <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
+          <h2 className="font-semibold text-teal-300">Engagement</h2>
+
+          {!engagements || engagements.length === 0 ? (
+            <>
+              <p className="text-sm text-navy-100">
+                No ongoing engagement yet - a one-off unlock, not a long-term relationship.
+              </p>
+              {isBusiness && (
+                <form action={createEngagement}>
+                  <input type="hidden" name="unlock_id" value={unlockId} />
+                  <button
+                    type="submit"
+                    className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
+                  >
+                    Start engagement (Enterprise)
+                  </button>
+                </form>
+              )}
+            </>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {engagements.map((e) => (
+                <li key={e.id}>
+                  <Link
+                    href={`/engagements/${e.id}`}
+                    className="flex items-center justify-between rounded border border-navy-500 p-3 text-sm hover:bg-navy-800"
+                  >
+                    <span className="capitalize">{e.status}</span>
+                    <span className="text-navy-200">{new Date(e.started_at).toLocaleDateString()}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <Link href="/dashboard" className="text-sm text-teal-300 underline">
         Back to dashboard
