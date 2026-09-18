@@ -63,18 +63,27 @@ and intentionally not built yet.
 `migrations/` holds the phase 2+ migrations, run against Supabase in
 order, **after** `reppit_schema.sql`:
 
-1. `reppit_migration_002_orders_progress.sql` — order lifecycle,
-   payments, delivery, order-linked messaging. **Depends on a
-   `catalogues` table that doesn't exist in `reppit_schema.sql` yet**
-   (v1 deliberately left it out) — don't run this until whatever adds
-   `catalogues`/`catalogue_items` has been applied first.
-2. `reppit_migration_003_enterprise.sql` — Enterprise area
-   subscriptions and discounted token pricing. No dependency on `002`
-   or on `catalogues`; can run any time after `reppit_schema.sql`.
-3. `reppit_migration_004_team_management.sql` — engagements + the
+1. `reppit_migration_001b_catchup_catalogues_logistics.sql` —
+   `catalogues`, `catalogue_items`, `distributor_details`,
+   `distribution_hubs`, `consolidated_loads`, `load_bookings`. These
+   were designed in the original v1 schema notes but never actually
+   created (v1's trimmed scope only built what reps/printers needed).
+   All `IF NOT EXISTS`, safe to run regardless of current state. Adds
+   a nullable `unlocks.catalogue_id`, but leaves `unlocks.provider_id`
+   `NOT NULL` from v1 untouched — catalogue-only unlocks need a schema
+   fix (drop that `NOT NULL`, add an exclusivity check, split the
+   unique constraint) before they'll actually work; that lands with
+   the catalogue-unlock feature, not this migration.
+2. `reppit_migration_002_orders_progress.sql` — order lifecycle,
+   payments, delivery, order-linked messaging. Depends on `001b`
+   (`catalogues`).
+3. `reppit_migration_003_enterprise.sql` — Enterprise area
+   subscriptions and discounted token pricing. No dependency on `001b`
+   or `002`; can run any time after `reppit_schema.sql`.
+4. `reppit_migration_004_team_management.sql` — engagements + the
    sales rep / merchandiser / marketing team dashboard. Depends on
    `002` (orders) and `003` (enterprise_subscriptions).
-4. `reppit_migration_005_payment_terms.sql` — engagement payment
+5. `reppit_migration_005_payment_terms.sql` — engagement payment
    terms (commission/retainer, Paystack Transfer Recipient reference
    only, no money movement). Depends on `004` (engagements) and `002`
    (orders).
