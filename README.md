@@ -58,6 +58,33 @@ browse/search, manual verification, token purchases (Paystack), unlock
 logistics, and the distributor category are designed for later phases
 and intentionally not built yet.
 
+## v2 migrations
+
+`migrations/` holds the phase 2+ migrations, run against Supabase in
+order, **after** `reppit_schema.sql`:
+
+1. `reppit_migration_002_orders_progress.sql` — order lifecycle,
+   payments, delivery, order-linked messaging. **Depends on a
+   `catalogues` table that doesn't exist in `reppit_schema.sql` yet**
+   (v1 deliberately left it out) — don't run this until whatever adds
+   `catalogues`/`catalogue_items` has been applied first.
+2. `reppit_migration_003_enterprise.sql` — Enterprise area
+   subscriptions and discounted token pricing. No dependency on `002`
+   or on `catalogues`; can run any time after `reppit_schema.sql`.
+3. `reppit_migration_004_team_management.sql` — engagements + the
+   sales rep / merchandiser / marketing team dashboard. Depends on
+   `002` (orders) and `003` (enterprise_subscriptions).
+4. `reppit_migration_005_payment_terms.sql` — engagement payment
+   terms (commission/retainer, Paystack Transfer Recipient reference
+   only, no money movement). Depends on `004` (engagements) and `002`
+   (orders).
+
+These are provided files, not authored from this codebase's
+conventions — e.g. `enterprise_subscriptions.business_user_id`
+references `users(id)` directly rather than `businesses(id)` the way
+v1's `token_balances`/`unlocks` do. Run as given rather than
+reconciled to v1's pattern.
+
 ## Token purchases (Paystack)
 
 `/business/tokens` reads active rows from `token_packs`, but there's no
