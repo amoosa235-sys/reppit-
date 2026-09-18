@@ -87,16 +87,28 @@ order, **after** `reppit_schema.sql`:
    Also adds the public `catalogue-photos` storage bucket, since
    catalogues are browsable pre-unlock the same way provider profiles
    are.
-5. `reppit_migration_002_orders_progress.sql` — order lifecycle,
+5. `reppit_migration_001e_catalogue_unlocks.sql` — not part of the
+   provided set; closes the `unlocks.provider_id NOT NULL` gap flagged
+   when `001b` was filed. Drops that `NOT NULL`, adds an exclusivity
+   check (exactly one of `provider_id`/`catalogue_id`), and a partial
+   unique index for catalogue unlocks (`uq_unlocks_provider` only ever
+   covered the provider case). Also extends `unlocks_select`,
+   `users_select_via_unlock` (as a second, separate policy — the
+   catalogue owner isn't reached through a `provider_profiles` join
+   the way a provider is), and `messages_insert` to recognize a
+   catalogue unlock's counterpart, none of which existing policies
+   accounted for. Adds `spend_tokens_for_catalogue_unlock`, the same
+   locking/idempotency pattern as `spend_tokens_for_unlock`.
+6. `reppit_migration_002_orders_progress.sql` — order lifecycle,
    payments, delivery, order-linked messaging. Depends on `001b`
    (`catalogues`).
-6. `reppit_migration_003_enterprise.sql` — Enterprise area
+7. `reppit_migration_003_enterprise.sql` — Enterprise area
    subscriptions and discounted token pricing. No dependency on `001b`
    or `002`; can run any time after `reppit_schema.sql`.
-7. `reppit_migration_004_team_management.sql` — engagements + the
+8. `reppit_migration_004_team_management.sql` — engagements + the
    sales rep / merchandiser / marketing team dashboard. Depends on
    `002` (orders) and `003` (enterprise_subscriptions).
-8. `reppit_migration_005_payment_terms.sql` — engagement payment
+9. `reppit_migration_005_payment_terms.sql` — engagement payment
    terms (commission/retainer, Paystack Transfer Recipient reference
    only, no money movement). Depends on `004` (engagements) and `002`
    (orders).

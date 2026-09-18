@@ -39,6 +39,12 @@ export default async function CatalogueDetailPage({
     .eq("catalogue_id", catalogueId)
     .order("product_name", { ascending: true });
 
+  const { data: unlocks } = await supabase
+    .from("unlocks")
+    .select("id, unlocked_at, businesses(name)")
+    .eq("catalogue_id", catalogueId)
+    .order("unlocked_at", { ascending: false });
+
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
       <Link href="/business/catalogues" className="text-sm text-teal-300 underline">
@@ -123,6 +129,34 @@ export default async function CatalogueDetailPage({
                       {item.moq != null && `MOQ ${item.moq}`}
                     </p>
                   </div>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <h2 className="font-semibold text-teal-300">Businesses that unlocked this catalogue</h2>
+
+      {!unlocks || unlocks.length === 0 ? (
+        <p className="text-sm text-navy-100">No businesses have unlocked this catalogue yet.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {unlocks.map((u) => {
+            const business = u.businesses as unknown as { name: string } | null;
+            return (
+              <li key={u.id} className="flex items-center justify-between rounded border border-navy-500 p-3">
+                <div>
+                  <p className="font-medium">{business?.name}</p>
+                  <p className="text-xs text-navy-200">
+                    unlocked {new Date(u.unlocked_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <Link
+                  href={`/messages/${u.id}`}
+                  className="rounded bg-teal-500 px-3 py-1 text-sm font-semibold text-white hover:bg-teal-600"
+                >
+                  Message
                 </Link>
               </li>
             );

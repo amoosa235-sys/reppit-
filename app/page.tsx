@@ -23,6 +23,9 @@ export default function Home() {
         <Link href="/browse" className="text-teal-300 underline">
           Browse providers
         </Link>
+        <Link href="/catalogues" className="text-teal-300 underline">
+          Browse catalogues
+        </Link>
       </div>
     </main>
   );

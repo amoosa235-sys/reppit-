@@ -7,6 +7,7 @@ type UnlockRow = {
   id: string;
   businesses: { user_id: string; name: string } | null;
   provider_profiles: { user_id: string; name: string } | null;
+  catalogues: { business_user_id: string; name: string } | null;
 };
 
 export default async function MessageThreadPage({
@@ -30,7 +31,7 @@ export default async function MessageThreadPage({
 
   const { data } = await supabase
     .from("unlocks")
-    .select("id, businesses(user_id, name), provider_profiles(user_id, name)")
+    .select("id, businesses(user_id, name), provider_profiles(user_id, name), catalogues(business_user_id, name)")
     .eq("id", unlockId)
     .maybeSingle();
 
@@ -40,15 +41,31 @@ export default async function MessageThreadPage({
     redirect("/dashboard");
   }
 
-  const isBusiness = unlock.businesses?.user_id === user.id;
-  const isProvider = unlock.provider_profiles?.user_id === user.id;
+  const isCatalogueUnlock = unlock.catalogues !== null;
 
-  if (!isBusiness && !isProvider) {
+  const isBusiness = unlock.businesses?.user_id === user.id;
+  const isProvider = !isCatalogueUnlock && unlock.provider_profiles?.user_id === user.id;
+  const isCatalogueOwner = isCatalogueUnlock && unlock.catalogues?.business_user_id === user.id;
+
+  if (!isBusiness && !isProvider && !isCatalogueOwner) {
     redirect("/dashboard");
   }
 
-  const counterpartUserId = isBusiness ? unlock.provider_profiles?.user_id : unlock.businesses?.user_id;
-  const counterpartName = isBusiness ? unlock.provider_profiles?.name : unlock.businesses?.name;
+  const counterpartUserId = isCatalogueUnlock
+    ? isBusiness
+      ? unlock.catalogues?.business_user_id
+      : unlock.businesses?.user_id
+    : isBusiness
+      ? unlock.provider_profiles?.user_id
+      : unlock.businesses?.user_id;
+
+  const counterpartName = isCatalogueUnlock
+    ? isBusiness
+      ? unlock.catalogues?.name
+      : unlock.businesses?.name
+    : isBusiness
+      ? unlock.provider_profiles?.name
+      : unlock.businesses?.name;
 
   const { data: counterpartAccount } = counterpartUserId
     ? await supabase.from("users").select("email").eq("id", counterpartUserId).maybeSingle()
@@ -60,21 +77,27 @@ export default async function MessageThreadPage({
     .eq("unlock_id", unlockId)
     .order("created_at", { ascending: true });
 
-  const { data: myRating } = await supabase
-    .from("ratings")
-    .select("rating, comment")
-    .eq("unlock_id", unlockId)
-    .eq("rater_id", user.id)
-    .maybeSingle();
-
-  const { data: theirRating } = counterpartUserId
-    ? await supabase
+  // Ratings only support provider unlocks (RLS enforces this too) - v1
+  // scope was "business rates provider, provider rates business", and a
+  // catalogue unlock has no equivalent yet.
+  const { data: myRating } = isCatalogueUnlock
+    ? { data: null }
+    : await supabase
         .from("ratings")
         .select("rating, comment")
         .eq("unlock_id", unlockId)
-        .eq("rater_id", counterpartUserId)
-        .maybeSingle()
-    : { data: null };
+        .eq("rater_id", user.id)
+        .maybeSingle();
+
+  const { data: theirRating } =
+    !isCatalogueUnlock && counterpartUserId
+      ? await supabase
+          .from("ratings")
+          .select("rating, comment")
+          .eq("unlock_id", unlockId)
+          .eq("rater_id", counterpartUserId)
+          .maybeSingle()
+      : { data: null };
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
@@ -124,6 +147,7 @@ export default async function MessageThreadPage({
         </button>
       </form>
 
+      {!isCatalogueUnlock && (
       <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
         <h2 className="font-semibold text-teal-300">Rating</h2>
 
@@ -168,6 +192,7 @@ export default async function MessageThreadPage({
           </p>
         )}
       </section>
+      )}
 
       <Link href="/dashboard" className="text-sm text-teal-300 underline">
         Back to dashboard

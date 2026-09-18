@@ -7,3 +7,6 @@ export const UNLOCK_COST_BY_TIER: Record<string, number> = {
 export function unlockCostForTier(tier: string): number {
   return UNLOCK_COST_BY_TIER[tier] ?? 1;
 }
+
+// Catalogue unlocks are flat-rate, not tiered by provider category.
+export const CATALOGUE_UNLOCK_COST = 2;

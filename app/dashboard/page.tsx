@@ -69,6 +69,12 @@ export default async function DashboardPage() {
             Browse providers
           </Link>
           <Link
+            href="/catalogues"
+            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
+          >
+            Browse catalogues
+          </Link>
+          <Link
             href="/business/tokens"
             className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
           >
