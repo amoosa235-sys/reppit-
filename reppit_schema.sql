@@ -445,3 +445,35 @@ $$;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- ---------------------------------------------------------------------------
+-- Storage: provider profile photos
+-- ---------------------------------------------------------------------------
+
+-- Public bucket (photos are marketing material shown on public provider
+-- profiles). Uploads are keyed by "<user_id>/<file>" so RLS can scope
+-- writes to the owning provider without a lookup.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('provider-photos', 'provider-photos', true, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+create policy provider_photos_read on storage.objects
+  for select using (bucket_id = 'provider-photos');
+
+create policy provider_photos_insert_own on storage.objects
+  for insert with check (
+    bucket_id = 'provider-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy provider_photos_update_own on storage.objects
+  for update using (
+    bucket_id = 'provider-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy provider_photos_delete_own on storage.objects
+  for delete using (
+    bucket_id = 'provider-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/supabase/actions";
@@ -25,10 +26,18 @@ export default async function DashboardPage() {
       <p className="text-navy-100">
         Signed in as {user.email} · role: {profile?.role ?? "unknown"}
       </p>
+      {profile?.role === "provider" && (
+        <Link
+          href="/provider/profile"
+          className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
+        >
+          Manage your provider profile
+        </Link>
+      )}
       <form action={signOut}>
         <button
           type="submit"
-          className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
+          className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
         >
           Sign out
         </button>
