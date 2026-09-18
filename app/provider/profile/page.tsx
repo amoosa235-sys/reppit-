@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { saveProviderProfile } from "./actions";
@@ -69,7 +70,10 @@ export default async function ProviderProfilePage({
 
       {providerProfile && (
         <p className="text-sm text-navy-100">
-          Tier: {providerProfile.tier} · Verification: {providerProfile.verification_status}
+          Tier: {providerProfile.tier} · Verification: {providerProfile.verification_status} ·{" "}
+          <Link href="/provider/verification" className="text-teal-300 underline">
+            Submit verification documents
+          </Link>
         </p>
       )}
 

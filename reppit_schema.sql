@@ -477,3 +477,38 @@ create policy provider_photos_delete_own on storage.objects
     bucket_id = 'provider-photos'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- ---------------------------------------------------------------------------
+-- Storage: manual verification documents
+-- ---------------------------------------------------------------------------
+
+-- Private bucket (ID documents, business registration, etc.) - only the
+-- owning provider and admins can read. Same "<user_id>/<file>" folder
+-- convention as provider-photos.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'verification-documents',
+  'verification-documents',
+  false,
+  10485760,
+  array['application/pdf', 'image/jpeg', 'image/png']
+)
+on conflict (id) do nothing;
+
+create policy verification_documents_storage_select on storage.objects
+  for select using (
+    bucket_id = 'verification-documents'
+    and ((storage.foldername(name))[1] = auth.uid()::text or public.is_admin())
+  );
+
+create policy verification_documents_storage_insert_own on storage.objects
+  for insert with check (
+    bucket_id = 'verification-documents'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy verification_documents_storage_delete_own on storage.objects
+  for delete using (
+    bucket_id = 'verification-documents'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
