@@ -118,3 +118,41 @@ export async function createPlan(params: CreatePlanParams): Promise<{ plan_code:
 
   return json.data as { plan_code: string };
 }
+
+type CreateTransferRecipientParams = {
+  name: string;
+  accountNumber: string;
+  bankCode: string;
+};
+
+// South African bank account recipient ("basa"), per Paystack's documented
+// recipient types for the ZA integration - not exercised against a live
+// Paystack account in this pass (same sandbox network restriction noted
+// throughout this codebase for every other Paystack call). Reppit never
+// stores the account number/bank code itself; only the recipient_code this
+// returns is persisted (engagement_payment_terms.paystack_recipient_code).
+export async function createTransferRecipient(
+  params: CreateTransferRecipientParams,
+): Promise<{ recipient_code: string }> {
+  const res = await fetch(`${PAYSTACK_BASE_URL}/transferrecipient`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${requireSecretKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      type: "basa",
+      name: params.name,
+      account_number: params.accountNumber,
+      bank_code: params.bankCode,
+      currency: "ZAR",
+    }),
+  });
+
+  const json = await parseResponse(res);
+  if (!res.ok || !json.status) {
+    throw new Error(json.message ?? "Could not register Paystack transfer recipient.");
+  }
+
+  return json.data as { recipient_code: string };
+}

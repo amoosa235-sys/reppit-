@@ -12,6 +12,7 @@ import {
   createDamage,
 } from "./sales-rep/actions";
 import { createCampaign, updateCampaign, uploadMarketingAsset } from "./marketing/actions";
+import { setPaymentTerms, setPaymentRecipient } from "./payment-terms/actions";
 
 type EngagementRow = {
   id: string;
@@ -20,8 +21,18 @@ type EngagementRow = {
   ended_at: string | null;
   notes: string | null;
   business_user_id: string;
+  provider_profile_id: string;
   provider_profiles: { name: string; user_id: string } | null;
 };
+
+const FREQUENCY_DAYS: Record<string, number> = {
+  weekly: 7,
+  monthly: 30,
+};
+
+function daysSince(dateStr: string): number {
+  return Math.max(0, (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+}
 
 export default async function EngagementDetailPage({
   params,
@@ -44,7 +55,9 @@ export default async function EngagementDetailPage({
 
   const { data } = await supabase
     .from("engagements")
-    .select("id, status, started_at, ended_at, notes, business_user_id, provider_profiles(name, user_id)")
+    .select(
+      "id, status, started_at, ended_at, notes, business_user_id, provider_profile_id, provider_profiles(name, user_id)",
+    )
     .eq("id", engagementId)
     .maybeSingle();
 
@@ -159,6 +172,36 @@ export default async function EngagementDetailPage({
       return { ...c, assets: assetsWithUrls };
     }),
   );
+
+  const { data: paymentTerms } = await supabase
+    .from("engagement_payment_terms")
+    .select(
+      "payment_type, commission_pct, retainer_amount, frequency, paystack_recipient_code, recipient_added_at",
+    )
+    .eq("engagement_id", engagementId)
+    .maybeSingle();
+
+  let amountOwed: number | null = null;
+
+  if (paymentTerms?.payment_type === "commission" && paymentTerms.commission_pct != null) {
+    const { data: matchedOrders } = await supabase
+      .from("orders")
+      .select("price_total")
+      .eq("buyer_user_id", engagement.business_user_id)
+      .eq("provider_profile_id", engagement.provider_profile_id)
+      .eq("payment_status", "paid")
+      .gte("created_at", engagement.started_at);
+
+    const total = (matchedOrders ?? []).reduce((sum, o) => sum + Number(o.price_total ?? 0), 0);
+    amountOwed = (total * paymentTerms.commission_pct) / 100;
+  } else if (paymentTerms?.payment_type === "retainer" && paymentTerms.retainer_amount != null) {
+    const daysElapsed = daysSince(engagement.started_at);
+    const periodDays = FREQUENCY_DAYS[paymentTerms.frequency] ?? 30;
+    // "per_order" retainer has no natural period length; falls back to a
+    // monthly period rather than leaving amount owed uncomputed.
+    const periodsElapsed = Math.max(1, Math.floor(daysElapsed / periodDays) + 1);
+    amountOwed = paymentTerms.retainer_amount * periodsElapsed;
+  }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
@@ -601,6 +644,128 @@ export default async function EngagementDetailPage({
             Create campaign
           </button>
         </form>
+      </section>
+
+      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
+        <h2 className="font-semibold text-teal-300">Payment terms</h2>
+        <p className="text-xs text-navy-200">
+          Reference only — Reppit doesn&apos;t move money for engagements. The business pays the provider
+          directly, off-platform, using these terms.
+        </p>
+
+        {paymentTerms ? (
+          <div className="rounded border border-navy-500 p-3 text-sm">
+            <p className="font-medium">
+              {paymentTerms.payment_type === "commission"
+                ? `${paymentTerms.commission_pct}% commission`
+                : `R${Number(paymentTerms.retainer_amount).toFixed(2)} retainer`}{" "}
+              · {paymentTerms.frequency.replace("_", " ")}
+            </p>
+            {amountOwed != null && (
+              <p className="mt-1 text-teal-300">Amount owed (calculated): R{amountOwed.toFixed(2)}</p>
+            )}
+            <p className="mt-2 text-xs text-navy-200">
+              Payout recipient:{" "}
+              {paymentTerms.paystack_recipient_code
+                ? `registered ${new Date(paymentTerms.recipient_added_at!).toLocaleDateString()}`
+                : "not registered yet"}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-navy-100">No payment terms set yet.</p>
+        )}
+
+        {isBusiness && (
+          <form action={setPaymentTerms} className="flex flex-col gap-3">
+            <input type="hidden" name="engagement_id" value={engagementId} />
+            <div className="flex gap-4">
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Payment type</span>
+                <select
+                  name="payment_type"
+                  defaultValue={paymentTerms?.payment_type ?? "commission"}
+                  className="rounded px-3 py-2 text-navy-900"
+                >
+                  <option value="commission">Commission</option>
+                  <option value="retainer">Retainer</option>
+                </select>
+              </label>
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Frequency</span>
+                <select
+                  name="frequency"
+                  defaultValue={paymentTerms?.frequency ?? "monthly"}
+                  className="rounded px-3 py-2 text-navy-900"
+                >
+                  <option value="per_order">Per order</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </label>
+            </div>
+            <div className="flex gap-4">
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Commission %</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  name="commission_pct"
+                  defaultValue={paymentTerms?.commission_pct ?? ""}
+                  className="rounded px-3 py-2 text-navy-900"
+                />
+              </label>
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Retainer amount (R)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  name="retainer_amount"
+                  defaultValue={paymentTerms?.retainer_amount ?? ""}
+                  className="rounded px-3 py-2 text-navy-900"
+                />
+              </label>
+            </div>
+            <button
+              type="submit"
+              className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
+            >
+              {paymentTerms ? "Update terms" : "Set terms"}
+            </button>
+          </form>
+        )}
+
+        {isProvider && paymentTerms && (
+          <form action={setPaymentRecipient} className="flex flex-col gap-3 border-t border-navy-500 pt-3">
+            <input type="hidden" name="engagement_id" value={engagementId} />
+            <p className="text-xs text-navy-200">
+              Register your bank account with Paystack to receive a payout reference. Reppit never stores your
+              account details — only the reference Paystack returns.
+            </p>
+            <div className="flex gap-4">
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Account holder name</span>
+                <input type="text" name="account_name" required className="rounded px-3 py-2 text-navy-900" />
+              </label>
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Account number</span>
+                <input type="text" name="account_number" required className="rounded px-3 py-2 text-navy-900" />
+              </label>
+              <label className="flex flex-1 flex-col gap-1 text-sm">
+                <span className="text-navy-100">Bank code</span>
+                <input type="text" name="bank_code" required className="rounded px-3 py-2 text-navy-900" />
+              </label>
+            </div>
+            <button
+              type="submit"
+              className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
+            >
+              {paymentTerms.paystack_recipient_code ? "Re-register recipient" : "Register recipient"}
+            </button>
+          </form>
+        )}
       </section>
     </main>
   );

@@ -173,12 +173,50 @@ order, **after** `reppit_schema.sql`:
     terms (commission/retainer, Paystack Transfer Recipient reference
     only, no money movement). Depends on `004` (engagements) and `002`
     (orders).
+13. `reppit_migration_005a_payment_terms_rls.sql` — not part of the
+    provided set; same RLS-off gap as everywhere else, now for
+    `engagement_payment_terms`. Unlike the other v2d tables, this one
+    mixes two writes with different rightful owners — the business
+    sets the commercial terms (`payment_type`/`commission_pct`/
+    `retainer_amount`/`frequency`), the provider registers their own
+    Paystack payout reference (`paystack_recipient_code`) — and a
+    plain RLS `update` policy can't restrict individual columns by
+    caller. Adds `set_engagement_payment_terms()` (security definer,
+    checked against `business_user_id`) and
+    `set_engagement_payment_recipient()` (security definer, checked
+    against the provider's `provider_profiles.user_id`) instead; there
+    is no direct insert/update policy on this table at all, every
+    write goes through one of the two functions. Both require
+    `engagement_has_enterprise_access()`, same gate as every other
+    v2d write. Run after `005` and `004a`.
 
 These are provided files, not authored from this codebase's
 conventions — e.g. `enterprise_subscriptions.business_user_id`
 references `users(id)` directly rather than `businesses(id)` the way
 v1's `token_balances`/`unlocks` do. Run as given rather than
 reconciled to v1's pattern.
+
+## Engagement payment terms (v2e)
+
+`app/engagements/[engagementId]/payment-terms/actions.ts` calls the
+two RPCs above. Registering a payout recipient calls Paystack's
+Transfer Recipient API (`lib/paystack.ts`'s `createTransferRecipient`,
+type `basa` for South African bank accounts) with the account details
+the provider enters in the form — Reppit only ever persists the
+`recipient_code` Paystack returns, never the raw account number or
+bank code. Like the rest of this codebase's Paystack calls, this
+hasn't been exercised against a live account (sandbox network
+restrictions block `api.paystack.co`) — verified only up to the point
+of making the correctly-shaped request.
+
+"Amount owed" on the engagement detail page is calculated at request
+time, not stored: for a commission engagement, `sum(orders.price_total)
+* commission_pct / 100` over paid orders matching the engagement's
+business and provider since `engagements.started_at`; for a retainer,
+`retainer_amount` times the number of elapsed weekly/monthly periods
+since `started_at`. There's no "mark as paid" log (deferred, per
+`005`'s own note), so this is a running total since the engagement
+began, not reset each period.
 
 ## Token purchases (Paystack)
 
