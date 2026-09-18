@@ -122,6 +122,12 @@ export default async function DashboardPage() {
           >
             Load bookings
           </Link>
+          <Link
+            href="/business/enterprise"
+            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
+          >
+            Enterprise
+          </Link>
         </div>
       )}
       {profile?.role === "admin" && (

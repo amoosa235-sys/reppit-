@@ -141,7 +141,22 @@ order, **after** `reppit_schema.sql`:
 9. `reppit_migration_004_team_management.sql` — engagements + the
    sales rep / merchandiser / marketing team dashboard. Depends on
    `002` (orders) and `003` (enterprise_subscriptions).
-10. `reppit_migration_005_payment_terms.sql` — engagement payment
+10. `reppit_migration_003a_enterprise_rls.sql` — not part of the
+    provided set; same RLS-off gap as everywhere else, now for
+    `enterprise_plans`/`enterprise_subscriptions`/
+    `enterprise_subscription_areas`. Adds `paystack_plan_code` (on
+    `enterprise_plans`) and `paystack_subscription_code` (on
+    `enterprise_subscriptions`), plus a new
+    `enterprise_subscription_payments` log table and
+    `activate_enterprise_subscription()`. Unlike the other payment
+    functions, this one has to stay idempotent across a *recurring*
+    charge (a new Paystack reference every month, each one legitimately
+    extending the paid period once) rather than a single one-time
+    payment - a plain `paystack_reference` column can't express "seen
+    this one before" for that, hence the log table. Run after `003` and
+    `004` (needs `004`'s `trial_ends_at` for the trial flow to make
+    sense, even though its own SQL only requires `003`).
+11. `reppit_migration_005_payment_terms.sql` — engagement payment
    terms (commission/retainer, Paystack Transfer Recipient reference
    only, no money movement). Depends on `004` (engagements) and `002`
    (orders).

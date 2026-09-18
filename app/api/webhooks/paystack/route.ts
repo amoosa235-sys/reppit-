@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import { creditTokenPurchase } from "@/lib/tokens";
 import { activateProviderSubscription } from "@/lib/subscriptions";
 import { creditOrderPayment } from "@/lib/orders";
+import { activateEnterpriseSubscription, cancelEnterpriseSubscriptionByEmail } from "@/lib/enterprise";
 
 export async function POST(request: NextRequest) {
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
@@ -28,11 +29,18 @@ export async function POST(request: NextRequest) {
 
   if (event.event === "charge.success" && event.data?.reference) {
     const type = event.data.metadata?.type;
+    // Enterprise renewal charges are billed automatically off the Plan
+    // and don't reliably carry forward our metadata, but Paystack tags
+    // any plan-linked charge with `data.plan` - use that to route
+    // renewals to the same handler as the initial subscribe charge.
+    const isPlanLinked = Boolean(event.data.plan);
     try {
       if (type === "provider_subscription") {
         await activateProviderSubscription(event.data.reference);
       } else if (type === "order_payment") {
         await creditOrderPayment(event.data.reference);
+      } else if (type === "enterprise_subscription" || isPlanLinked) {
+        await activateEnterpriseSubscription(event.data.reference);
       } else {
         // Token purchases predate the type discriminator, so treat an
         // unrecognized/missing type as one too rather than dropping it.
@@ -43,6 +51,15 @@ export async function POST(request: NextRequest) {
       // would silently drop a payment if our side (or Paystack's verify
       // endpoint) had a transient issue.
       console.error("Paystack webhook: failed to process event", err);
+      return NextResponse.json({ error: "Could not process event" }, { status: 500 });
+    }
+  }
+
+  if (event.event === "subscription.disable" && event.data?.customer?.email) {
+    try {
+      await cancelEnterpriseSubscriptionByEmail(event.data.customer.email);
+    } catch (err) {
+      console.error("Paystack webhook: failed to process subscription.disable", err);
       return NextResponse.json({ error: "Could not process event" }, { status: 500 });
     }
   }

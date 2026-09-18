@@ -26,6 +26,11 @@ type InitializeParams = {
   amountKobo: number;
   callbackUrl: string;
   metadata?: Record<string, unknown>;
+  // Attaches the charge to a Paystack Plan - on success Paystack turns
+  // this into a recurring subscription that bills the same
+  // authorization automatically going forward, no further action needed
+  // on our side beyond handling the renewal webhooks.
+  plan?: string;
 };
 
 type InitializeResult = {
@@ -46,6 +51,7 @@ export async function initializeTransaction(params: InitializeParams): Promise<I
       amount: params.amountKobo,
       callback_url: params.callbackUrl,
       metadata: params.metadata,
+      plan: params.plan,
     }),
   });
 
@@ -62,6 +68,14 @@ export type VerifyResult = {
   reference: string;
   amount: number;
   metadata: Record<string, unknown> | null;
+  // Present on a subscription-linked charge (initial or renewal) -
+  // renewal charges typically don't carry forward our own metadata, so
+  // matching a renewal to the right enterprise subscription falls back
+  // to plan_code + customer email instead. Best-effort: exact renewal
+  // webhook shapes haven't been exercised against a live Paystack
+  // account, only documented behavior.
+  plan_object: { plan_code: string } | null;
+  customer: { email: string } | null;
 };
 
 export async function verifyTransaction(reference: string): Promise<VerifyResult> {
@@ -75,4 +89,32 @@ export async function verifyTransaction(reference: string): Promise<VerifyResult
   }
 
   return json.data as VerifyResult;
+}
+
+type CreatePlanParams = {
+  name: string;
+  amountKobo: number;
+  interval: "monthly";
+};
+
+export async function createPlan(params: CreatePlanParams): Promise<{ plan_code: string }> {
+  const res = await fetch(`${PAYSTACK_BASE_URL}/plan`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${requireSecretKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: params.name,
+      amount: params.amountKobo,
+      interval: params.interval,
+    }),
+  });
+
+  const json = await parseResponse(res);
+  if (!res.ok || !json.status) {
+    throw new Error(json.message ?? "Could not create Paystack plan.");
+  }
+
+  return json.data as { plan_code: string };
 }
