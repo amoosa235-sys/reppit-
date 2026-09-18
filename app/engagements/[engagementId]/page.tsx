@@ -11,6 +11,7 @@ import {
   updateRefundStatus,
   createDamage,
 } from "./sales-rep/actions";
+import { createCampaign, updateCampaign, uploadMarketingAsset } from "./marketing/actions";
 
 type EngagementRow = {
   id: string;
@@ -129,6 +130,33 @@ export default async function EngagementDetailPage({
         }),
       );
       return { ...d, photoUrls: urls.filter(Boolean) as string[] };
+    }),
+  );
+
+  const { data: campaigns } = await supabase
+    .from("marketing_campaigns")
+    .select("id, name, budget, cost_actual, start_date, end_date, status")
+    .eq("engagement_id", engagementId)
+    .order("start_date", { ascending: false, nullsFirst: false });
+
+  const campaignsWithAssets = await Promise.all(
+    (campaigns ?? []).map(async (c) => {
+      const { data: assets } = await supabase
+        .from("marketing_assets")
+        .select("id, asset_type, file_url, uploaded_at")
+        .eq("campaign_id", c.id)
+        .order("uploaded_at", { ascending: false });
+
+      const assetsWithUrls = await Promise.all(
+        (assets ?? []).map(async (a) => {
+          const { data: signed } = await supabase.storage
+            .from("team-management")
+            .createSignedUrl(a.file_url, 600);
+          return { ...a, signedUrl: signed?.signedUrl ?? null };
+        }),
+      );
+
+      return { ...c, assets: assetsWithUrls };
     }),
   );
 
@@ -463,6 +491,114 @@ export default async function EngagementDetailPage({
             className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
           >
             Report damage
+          </button>
+        </form>
+      </section>
+
+      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
+        <h2 className="font-semibold text-teal-300">Marketing campaigns</h2>
+
+        {campaignsWithAssets.length === 0 ? (
+          <p className="text-sm text-navy-100">No campaigns yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-4">
+            {campaignsWithAssets.map((c) => (
+              <li key={c.id} className="rounded border border-navy-500 p-3 text-sm">
+                <p className="font-medium">{c.name}</p>
+                <p className="text-xs text-navy-200">
+                  {c.start_date && `${c.start_date} → ${c.end_date ?? "?"} · `}
+                  Budget: {c.budget != null ? `R${Number(c.budget).toFixed(2)}` : "-"} · Spent: R
+                  {Number(c.cost_actual ?? 0).toFixed(2)} · status: {c.status}
+                </p>
+
+                <form action={updateCampaign} className="mt-2 flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="engagement_id" value={engagementId} />
+                  <input type="hidden" name="campaign_id" value={c.id} />
+                  <select name="status" defaultValue={c.status} className="rounded px-2 py-1 text-navy-900">
+                    <option value="planned">Planned</option>
+                    <option value="active">Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    name="cost_actual"
+                    defaultValue={c.cost_actual ?? 0}
+                    className="w-28 rounded px-2 py-1 text-navy-900"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
+                  >
+                    Update
+                  </button>
+                </form>
+
+                {c.assets.length > 0 && (
+                  <ul className="mt-3 flex flex-col gap-1">
+                    {c.assets.map((a) => (
+                      <li key={a.id} className="text-xs text-navy-200">
+                        {a.asset_type === "design" ? "Design" : "Promo material"} ·{" "}
+                        {a.signedUrl ? (
+                          <a href={a.signedUrl} target="_blank" rel="noreferrer" className="text-teal-300 underline">
+                            view
+                          </a>
+                        ) : (
+                          "unavailable"
+                        )}{" "}
+                        · {new Date(a.uploaded_at).toLocaleDateString()}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <form action={uploadMarketingAsset} className="mt-3 flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="engagement_id" value={engagementId} />
+                  <input type="hidden" name="campaign_id" value={c.id} />
+                  <select name="asset_type" defaultValue="design" className="rounded px-2 py-1 text-navy-900">
+                    <option value="design">Design</option>
+                    <option value="promo_material">Promo material</option>
+                  </select>
+                  <input type="file" name="file" accept="image/png,image/jpeg,image/webp,application/pdf" required />
+                  <button
+                    type="submit"
+                    className="rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
+                  >
+                    Upload
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form action={createCampaign} className="flex flex-col gap-3">
+          <input type="hidden" name="engagement_id" value={engagementId} />
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="text-navy-100">Campaign name</span>
+            <input type="text" name="name" required className="rounded px-3 py-2 text-navy-900" />
+          </label>
+          <div className="flex gap-4">
+            <label className="flex flex-1 flex-col gap-1 text-sm">
+              <span className="text-navy-100">Budget (R)</span>
+              <input type="number" min={0} step="0.01" name="budget" className="rounded px-3 py-2 text-navy-900" />
+            </label>
+            <label className="flex flex-1 flex-col gap-1 text-sm">
+              <span className="text-navy-100">Start date</span>
+              <input type="date" name="start_date" className="rounded px-3 py-2 text-navy-900" />
+            </label>
+            <label className="flex flex-1 flex-col gap-1 text-sm">
+              <span className="text-navy-100">End date</span>
+              <input type="date" name="end_date" className="rounded px-3 py-2 text-navy-900" />
+            </label>
+          </div>
+          <button
+            type="submit"
+            className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
+          >
+            Create campaign
           </button>
         </form>
       </section>
