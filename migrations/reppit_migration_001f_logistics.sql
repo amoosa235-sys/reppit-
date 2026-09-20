@@ -99,6 +99,12 @@ create policy load_bookings_select on public.load_bookings
 -- idempotency gate - load_bookings carries no uniqueness constraint,
 -- because a business legitimately booking more space on the same load
 -- later is a second row, not a duplicate of the first.
+--
+-- Called directly by the authenticated business user (app/loads/
+-- actions.ts) via supabase.rpc(), so `authenticated` keeps EXECUTE and
+-- both ownership checks below are load-bearing: without them a caller
+-- could pass any business_id (drain someone else's tokens) or any
+-- user_id (attribute the booking to someone else).
 create or replace function public.book_load(
   p_business_id uuid,
   p_user_id uuid,
@@ -117,6 +123,16 @@ declare
   v_booked numeric;
   v_status load_status;
 begin
+  if p_user_id <> auth.uid() then
+    raise exception 'not_your_user_id';
+  end if;
+
+  if not exists (
+    select 1 from businesses where id = p_business_id and user_id = auth.uid()
+  ) then
+    raise exception 'not_your_business';
+  end if;
+
   select balance into v_balance from token_balances where business_id = p_business_id for update;
 
   if v_balance is null or v_balance < p_tokens then
@@ -154,7 +170,10 @@ begin
 end;
 $$;
 
-revoke execute on function public.book_load(uuid, uuid, uuid, numeric, int) from public;
+-- Supabase grants EXECUTE on every new public-schema function to anon and
+-- authenticated directly, not only via the `public` pseudo-role - revoke
+-- from anon explicitly (authenticated keeps EXECUTE; guarded above).
+revoke execute on function public.book_load(uuid, uuid, uuid, numeric, int) from public, anon;
 
 -- ---------------------------------------------------------------------
 -- distribution_hubs.location_id is a hard FK to locations(id) - unlike
@@ -166,7 +185,8 @@ revoke execute on function public.book_load(uuid, uuid, uuid, numeric, int) from
 -- inputs, matching the rest of the app, while satisfying the FK:
 -- resolve-or-create the matching locations row behind the scenes.
 -- Safe to expose to any authenticated caller (harmless reference-data
--- upsert, not execute-restricted like the token/booking functions).
+-- upsert, not execute-restricted like the token/booking functions) -
+-- but not to anon, so revoked there below.
 -- ---------------------------------------------------------------------
 create or replace function public.get_or_create_location(p_province text, p_town text)
 returns uuid
@@ -185,3 +205,5 @@ begin
   return v_id;
 end;
 $$;
+
+revoke execute on function public.get_or_create_location(text, text) from public, anon;

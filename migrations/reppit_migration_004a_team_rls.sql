@@ -280,13 +280,16 @@ values (
 )
 on conflict (id) do nothing;
 
+-- storage.objects.name qualified explicitly: provider_profiles also has a
+-- `name` column, so the unqualified form is ambiguous once it's joined
+-- into this subquery's scope (same issue fixed in 002a's order_proofs_select).
 create policy team_management_select on storage.objects
   for select using (
     bucket_id = 'team-management'
     and exists (
       select 1 from public.engagements e
       left join public.provider_profiles p on p.id = e.provider_profile_id
-      where e.id::text = (storage.foldername(name))[1]
+      where e.id::text = (storage.foldername(storage.objects.name))[1]
         and (public.is_admin() or e.business_user_id = auth.uid() or p.user_id = auth.uid())
     )
   );
@@ -297,7 +300,7 @@ create policy team_management_insert on storage.objects
     and exists (
       select 1 from public.engagements e
       left join public.provider_profiles p on p.id = e.provider_profile_id
-      where e.id::text = (storage.foldername(name))[1]
+      where e.id::text = (storage.foldername(storage.objects.name))[1]
         and (e.business_user_id = auth.uid() or p.user_id = auth.uid())
     )
   );

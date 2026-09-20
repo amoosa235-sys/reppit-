@@ -15,7 +15,7 @@ create type enterprise_status as enum ('active', 'grace', 'lapsed', 'cancelled')
 
 create table enterprise_plans (
   tier enterprise_tier primary key,
-  area_limit integer not null,       -- e.g. starter=5, growth=10, scale=20, national=null (unlimited)
+  area_limit integer,       -- e.g. starter=5, growth=10, scale=20, national=null (unlimited) - nullable per the seed row below
   price_monthly_zar numeric not null,
   token_discount_pct numeric not null default 50  -- % off standard token cost within claimed areas
 );

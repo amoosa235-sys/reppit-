@@ -94,8 +94,12 @@ create policy messages_insert on public.messages
 -- the unlock, or - if that pair is already unlocked - charges nothing.
 -- Same idempotent locking pattern as spend_tokens_for_unlock, targeting
 -- catalogue_id and uq_unlocks_catalogue instead of provider_id and
--- uq_unlocks_provider. Execute revoked from anon/authenticated for the
--- same reason: this moves tokens, only trusted server code may call it.
+-- uq_unlocks_provider.
+--
+-- Called directly by the authenticated business user (app/catalogues/
+-- actions.ts) via supabase.rpc(), same as spend_tokens_for_unlock, so
+-- `authenticated` keeps EXECUTE and the ownership check below is
+-- load-bearing (a caller could otherwise pass any business_id).
 create or replace function public.spend_tokens_for_catalogue_unlock(
   p_business_id uuid,
   p_catalogue_id uuid,
@@ -110,6 +114,12 @@ declare
   v_balance int;
   v_count int;
 begin
+  if not exists (
+    select 1 from businesses where id = p_business_id and user_id = auth.uid()
+  ) then
+    raise exception 'not_your_business';
+  end if;
+
   select balance into v_balance
   from token_balances
   where business_id = p_business_id
@@ -144,4 +154,7 @@ begin
 end;
 $$;
 
-revoke execute on function public.spend_tokens_for_catalogue_unlock(uuid, uuid, int) from public;
+-- Supabase grants EXECUTE on every new public-schema function to anon and
+-- authenticated directly, not only via the `public` pseudo-role - revoke
+-- from anon explicitly (authenticated keeps EXECUTE; guarded above).
+revoke execute on function public.spend_tokens_for_catalogue_unlock(uuid, uuid, int) from public, anon;

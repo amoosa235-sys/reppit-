@@ -133,3 +133,10 @@ begin
   end if;
 end;
 $$;
+
+-- Both functions above already check auth.uid() against the engagement
+-- internally, so anon calling either just gets an exception - but
+-- Supabase grants EXECUTE on every new public-schema function to anon
+-- directly, and there is no legitimate anon caller, so revoke it anyway.
+revoke execute on function public.set_engagement_payment_terms(uuid, payment_type, numeric, numeric, payment_frequency) from public, anon;
+revoke execute on function public.set_engagement_payment_recipient(uuid, text) from public, anon;

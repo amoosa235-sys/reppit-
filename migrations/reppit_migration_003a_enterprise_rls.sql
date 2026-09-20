@@ -137,4 +137,10 @@ begin
 end;
 $$;
 
-revoke execute on function public.activate_enterprise_subscription(text, uuid, text) from public;
+-- Called only from lib/enterprise.ts via the service-role client, after a
+-- verified Paystack charge - no verification of its own, so direct client
+-- access would let a business activate/extend its subscription for free.
+-- Supabase grants EXECUTE on every new public-schema function to anon and
+-- authenticated directly (not only via the `public` pseudo-role), so both
+-- need an explicit revoke here.
+revoke execute on function public.activate_enterprise_subscription(text, uuid, text) from public, anon, authenticated;

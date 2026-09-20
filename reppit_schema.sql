@@ -17,26 +17,12 @@ create extension if not exists "pgcrypto";
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   new.updated_at = now();
   return new;
 end;
-$$;
-
--- Returns true if the calling user (auth.uid()) has the admin role.
--- security definer + fixed search_path so it can read public.users under RLS
--- without being tricked by a caller-controlled search_path.
-create or replace function public.is_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1 from public.users where id = auth.uid() and role = 'admin'
-  );
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -49,6 +35,24 @@ create table public.users (
   role text not null check (role in ('business', 'provider', 'admin')),
   created_at timestamptz not null default now()
 );
+
+-- Returns true if the calling user (auth.uid()) has the admin role.
+-- security definer + fixed search_path so it can read public.users under RLS
+-- without being tricked by a caller-controlled search_path.
+-- Defined after public.users (not up in Helpers) because `language sql`
+-- functions are parsed/planned at CREATE time, unlike plpgsql - the table
+-- has to exist first or this fails with "relation does not exist".
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.users where id = auth.uid() and role = 'admin'
+  );
+$$;
 
 -- ---------------------------------------------------------------------------
 -- Locations (simple province/town reference; full autocomplete deferred)
@@ -533,7 +537,10 @@ alter table public.token_transactions
 -- despite those tables having no client-facing insert/update policies;
 -- execute is revoked from anon/authenticated below so only trusted
 -- server code (the service-role client) can call it - a business must
--- never be able to invoke this directly with an arbitrary amount.
+-- never be able to invoke this directly with an arbitrary amount. This
+-- function does no Paystack verification itself (that already happened
+-- in application code before it's called) - direct client access would
+-- mean free tokens for the price of a made-up reference string.
 create or replace function public.record_token_purchase(
   p_reference text,
   p_business_id uuid,
@@ -567,7 +574,11 @@ begin
 end;
 $$;
 
-revoke execute on function public.record_token_purchase(text, uuid, uuid, int) from public;
+-- Supabase grants EXECUTE on every new public-schema function to anon and
+-- authenticated directly, not only via the `public` pseudo-role - revoke
+-- from all three explicitly, or a business could mint itself free tokens
+-- by calling this RPC directly with a made-up reference.
+revoke execute on function public.record_token_purchase(text, uuid, uuid, int) from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Unlocks: contact reveal + spend
@@ -613,9 +624,13 @@ create policy messages_insert on public.messages
 -- trip. Locks the balance row first so two concurrent unlock attempts for
 -- the same business can't both pass the balance check.
 --
--- security definer + execute revoked from anon/authenticated for the same
--- reason as record_token_purchase: this moves tokens, so only trusted
--- server code may call it.
+-- security definer, called directly by the authenticated business user
+-- (app/browse/actions.ts) via supabase.rpc() - so unlike
+-- record_token_purchase, `authenticated` keeps EXECUTE. That means this
+-- function is reachable with an attacker-chosen p_business_id, not just
+-- the one the calling server action looked up - the ownership check below
+-- (p_business_id must actually belong to auth.uid()) is load-bearing, not
+-- redundant with the server action's own lookup.
 create or replace function public.spend_tokens_for_unlock(
   p_business_id uuid,
   p_provider_id uuid,
@@ -630,6 +645,12 @@ declare
   v_balance int;
   v_count int;
 begin
+  if not exists (
+    select 1 from businesses where id = p_business_id and user_id = auth.uid()
+  ) then
+    raise exception 'not_your_business';
+  end if;
+
   select balance into v_balance
   from token_balances
   where business_id = p_business_id
@@ -660,7 +681,13 @@ begin
 end;
 $$;
 
-revoke execute on function public.spend_tokens_for_unlock(uuid, uuid, int) from public;
+-- Supabase grants EXECUTE on every new public-schema function to anon and
+-- authenticated directly (not only via the `public` pseudo-role), so a
+-- plain "revoke ... from public" - the pattern used throughout this file -
+-- does NOT actually stop anon from calling this. Revoke it explicitly;
+-- authenticated keeps EXECUTE since real callers need it, guarded by the
+-- ownership check above.
+revoke execute on function public.spend_tokens_for_unlock(uuid, uuid, int) from public, anon;
 
 -- ---------------------------------------------------------------------------
 -- Ratings: pin ratee_id to the unlock counterpart
@@ -723,4 +750,7 @@ begin
 end;
 $$;
 
-revoke execute on function public.record_provider_subscription(text, uuid, text, int) from public;
+-- Supabase grants EXECUTE on every new public-schema function to anon and
+-- authenticated directly, not only via the `public` pseudo-role - revoke
+-- from all three explicitly, same reasoning as record_token_purchase.
+revoke execute on function public.record_provider_subscription(text, uuid, text, int) from public, anon, authenticated;

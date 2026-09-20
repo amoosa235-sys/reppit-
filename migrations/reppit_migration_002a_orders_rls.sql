@@ -144,7 +144,10 @@ create policy order_proofs_select on storage.objects
       select 1 from public.orders o
       left join public.catalogues c on c.id = o.catalogue_id
       left join public.provider_profiles p on p.id = o.provider_profile_id
-      where o.id::text = (storage.foldername(name))[1]
+      -- storage.objects.name qualified explicitly: both catalogues and
+      -- provider_profiles also have a `name` column, so the unqualified
+      -- form is ambiguous once they're joined into this subquery's scope.
+      where o.id::text = (storage.foldername(storage.objects.name))[1]
         and (public.is_admin() or o.buyer_user_id = auth.uid() or c.business_user_id = auth.uid() or p.user_id = auth.uid())
     )
   );
@@ -214,5 +217,13 @@ begin
   return true;
 end;
 $$;
+
+-- Called only from lib/orders.ts via the service-role client, after this
+-- codebase's own Paystack verify() call - it does no verification of its
+-- own, so direct client access would let a buyer mark any order "paid"
+-- for free. Supabase grants EXECUTE on every new public-schema function
+-- to anon and authenticated directly (not only via the `public`
+-- pseudo-role), so both need an explicit revoke here.
+revoke execute on function public.record_order_payment(text, uuid, numeric) from public, anon, authenticated;
 
 revoke execute on function public.record_order_payment(text, uuid, numeric) from public;
