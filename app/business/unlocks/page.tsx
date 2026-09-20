@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { LinkButton } from "@/components/ui";
 
 export default async function BusinessUnlocksPage() {
   const supabase = await createClient();
@@ -48,14 +49,14 @@ export default async function BusinessUnlocksPage() {
     : { data: null };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Your unlocks</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Your unlocks</h1>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-semibold text-teal-300">Providers</h2>
+        <h2 className="text-ds-display-md">Providers</h2>
         {!providerUnlocks || providerUnlocks.length === 0 ? (
-          <p className="text-sm text-navy-100">
-            You haven&apos;t unlocked any providers yet. <Link href="/browse" className="text-teal-300 underline">Browse providers</Link>.
+          <p className="text-ds-body text-ds-body-md">
+            You haven&apos;t unlocked any providers yet. <Link href="/browse" className="text-ds-link underline">Browse providers</Link>.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -66,19 +67,16 @@ export default async function BusinessUnlocksPage() {
                 tier: string;
               } | null;
               return (
-                <li key={u.id} className="flex items-center justify-between rounded border border-navy-500 p-3">
+                <li key={u.id} className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-md">
                   <div>
-                    <p className="font-medium">{provider?.name}</p>
-                    <p className="text-xs text-navy-200">
+                    <p className="font-medium text-ds-ink">{provider?.name}</p>
+                    <p className="text-ds-caption text-ds-mute">
                       {provider?.category} · {provider?.tier} · unlocked {new Date(u.unlocked_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <Link
-                    href={`/messages/${u.id}`}
-                    className="rounded bg-teal-500 px-3 py-1 text-sm font-semibold text-white hover:bg-teal-600"
-                  >
+                  <LinkButton href={`/messages/${u.id}`} variant="primary">
                     Message
-                  </Link>
+                  </LinkButton>
                 </li>
               );
             })}
@@ -87,29 +85,26 @@ export default async function BusinessUnlocksPage() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-semibold text-teal-300">Catalogues</h2>
+        <h2 className="text-ds-display-md">Catalogues</h2>
         {!catalogueUnlocks || catalogueUnlocks.length === 0 ? (
-          <p className="text-sm text-navy-100">
-            You haven&apos;t unlocked any catalogues yet. <Link href="/catalogues" className="text-teal-300 underline">Browse catalogues</Link>.
+          <p className="text-ds-body text-ds-body-md">
+            You haven&apos;t unlocked any catalogues yet. <Link href="/catalogues" className="text-ds-link underline">Browse catalogues</Link>.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
             {catalogueUnlocks.map((u) => {
               const catalogue = u.catalogues as unknown as { name: string; role: string } | null;
               return (
-                <li key={u.id} className="flex items-center justify-between rounded border border-navy-500 p-3">
+                <li key={u.id} className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-md">
                   <div>
-                    <p className="font-medium">{catalogue?.name}</p>
-                    <p className="text-xs text-navy-200">
+                    <p className="font-medium text-ds-ink">{catalogue?.name}</p>
+                    <p className="text-ds-caption text-ds-mute">
                       {catalogue?.role} · unlocked {new Date(u.unlocked_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <Link
-                    href={`/messages/${u.id}`}
-                    className="rounded bg-teal-500 px-3 py-1 text-sm font-semibold text-white hover:bg-teal-600"
-                  >
+                  <LinkButton href={`/messages/${u.id}`} variant="primary">
                     Message
-                  </Link>
+                  </LinkButton>
                 </li>
               );
             })}

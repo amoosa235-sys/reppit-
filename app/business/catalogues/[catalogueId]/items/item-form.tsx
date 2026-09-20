@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { Button, FormInput } from "@/components/ui";
 
 type Photo = { path: string; url: string };
 
@@ -15,9 +16,10 @@ type Initial = {
   photos: Photo[];
 };
 
-const inputClass = "rounded px-3 py-2 text-navy-900";
 const labelClass = "flex flex-col gap-1";
-const hintClass = "text-xs text-navy-200";
+const textareaClass =
+  "font-ds-sans bg-ds-canvas-level-3 text-ds-ink text-ds-body-sm border border-ds-hairline-secondary rounded-ds-sm px-ds-md py-ds-sm outline-none focus:border-ds-hairline-tertiary";
+const hintClass = "text-ds-caption text-ds-mute";
 
 export function ItemForm({
   action,
@@ -50,45 +52,45 @@ export function ItemForm({
       {itemId && <input type="hidden" name="item_id" value={itemId} />}
 
       <label className={labelClass}>
-        <span className="text-sm text-navy-100">Product name</span>
-        <input type="text" name="product_name" defaultValue={initial.productName} required className={inputClass} />
+        <span className="text-ds-caption text-ds-mute">Product name</span>
+        <FormInput type="text" name="product_name" defaultValue={initial.productName} required />
       </label>
 
       <div className="flex gap-4">
         <label className={labelClass + " flex-1"}>
-          <span className="text-sm text-navy-100">SKU</span>
-          <input type="text" name="sku" defaultValue={initial.sku} className={inputClass} />
+          <span className="text-ds-caption text-ds-mute">SKU</span>
+          <FormInput type="text" name="sku" defaultValue={initial.sku} />
         </label>
         <label className={labelClass + " flex-1"}>
-          <span className="text-sm text-navy-100">Category</span>
-          <input type="text" name="category" defaultValue={initial.category} className={inputClass} />
+          <span className="text-ds-caption text-ds-mute">Category</span>
+          <FormInput type="text" name="category" defaultValue={initial.category} />
         </label>
       </div>
 
       <label className={labelClass}>
-        <span className="text-sm text-navy-100">Description</span>
-        <textarea name="description" defaultValue={initial.description} rows={3} className={inputClass} />
+        <span className="text-ds-caption text-ds-mute">Description</span>
+        <textarea name="description" defaultValue={initial.description} rows={3} className={textareaClass} />
       </label>
 
       <div className="flex gap-4">
         <label className={labelClass + " flex-1"}>
-          <span className="text-sm text-navy-100">Price (R)</span>
-          <input type="number" min={0} step="0.01" name="price" defaultValue={initial.price} className={inputClass} />
+          <span className="text-ds-caption text-ds-mute">Price (R)</span>
+          <FormInput type="number" min={0} step="0.01" name="price" defaultValue={initial.price} />
         </label>
         <label className={labelClass + " flex-1"}>
-          <span className="text-sm text-navy-100">MOQ</span>
-          <input type="number" min={0} name="moq" defaultValue={initial.moq} className={inputClass} />
+          <span className="text-ds-caption text-ds-mute">MOQ</span>
+          <FormInput type="number" min={0} name="moq" defaultValue={initial.moq} />
         </label>
       </div>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1 text-sm text-navy-100">Photos</legend>
+        <legend className="mb-1 text-ds-caption text-ds-mute">Photos</legend>
 
         {initial.photos.length > 0 && (
           <div className="grid grid-cols-4 gap-3">
             {initial.photos.map((photo) => (
-              <label key={photo.path} className="flex flex-col items-center gap-1 text-xs">
-                <div className="relative h-16 w-full overflow-hidden rounded">
+              <label key={photo.path} className="flex flex-col items-center gap-1 text-ds-caption">
+                <div className="relative h-16 w-full overflow-hidden rounded-ds-sm">
                   <Image
                     src={photo.url}
                     alt=""
@@ -97,7 +99,7 @@ export function ItemForm({
                     className={"object-cover " + (photosToRemove.has(photo.path) ? "opacity-40" : "")}
                   />
                 </div>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 text-ds-mute">
                   <input
                     type="checkbox"
                     name="remove_photos"
@@ -116,12 +118,9 @@ export function ItemForm({
         <span className={hintClass}>Up to 4 photos total, 5MB each (JPEG, PNG, WebP).</span>
       </fieldset>
 
-      <button
-        type="submit"
-        className="w-fit rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-      >
+      <Button type="submit" variant="primary" className="w-fit">
         Save item
-      </button>
+      </Button>
     </form>
   );
 }

@@ -30,12 +30,12 @@ export default async function BusinessLoadBookingsPage() {
     .order("booked_at", { ascending: false });
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Your load bookings</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Your load bookings</h1>
 
       {!bookings || bookings.length === 0 ? (
-        <p className="text-navy-100">
-          You haven&apos;t booked a load yet. <Link href="/loads" className="text-teal-300 underline">Browse loads</Link>.
+        <p className="text-ds-body text-ds-body-md">
+          You haven&apos;t booked a load yet. <Link href="/loads" className="text-ds-link underline">Browse loads</Link>.
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -46,9 +46,9 @@ export default async function BusinessLoadBookingsPage() {
               status: string;
             } | null;
             return (
-              <li key={b.id} className="rounded border border-navy-500 p-3 text-sm">
+              <li key={b.id} className="rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm text-ds-ink">
                 <p className="font-medium">{load?.destination_region}</p>
-                <p className="text-xs text-navy-200">
+                <p className="text-ds-caption text-ds-mute">
                   Quantity {b.quantity} · departs {load?.departure_date} · {load?.status} · {b.tokens_spent} tokens
                 </p>
               </li>
@@ -57,7 +57,7 @@ export default async function BusinessLoadBookingsPage() {
         </ul>
       )}
 
-      <Link href="/dashboard" className="text-sm text-teal-300 underline">
+      <Link href="/dashboard" className="text-ds-body-sm text-ds-link underline">
         Back to dashboard
       </Link>
     </main>

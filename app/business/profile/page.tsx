@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { saveBusinessProfile } from "./actions";
+import { Button, FormInput } from "@/components/ui";
 
-const inputClass = "rounded px-3 py-2 text-navy-900";
 const labelClass = "flex flex-col gap-1";
+const textareaClass =
+  "font-ds-sans bg-ds-canvas-level-3 text-ds-ink text-ds-body-sm border border-ds-hairline-secondary rounded-ds-sm px-ds-md py-ds-sm outline-none focus:border-ds-hairline-tertiary";
 
 export default async function BusinessProfilePage({
   searchParams,
@@ -38,45 +40,42 @@ export default async function BusinessProfilePage({
     .maybeSingle();
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Your business profile</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Your business profile</h1>
 
-      {params.saved && <p className="text-sm text-teal-300">Saved.</p>}
-      {params.error && <p className="text-sm text-red-300">{params.error}</p>}
+      {params.saved && <p className="text-ds-body-sm text-ds-success">Saved.</p>}
+      {params.error && <p className="text-ds-body-sm text-red-400">{params.error}</p>}
 
       <form action={saveBusinessProfile} className="flex flex-col gap-4">
         <label className={labelClass}>
-          <span className="text-sm text-navy-100">Business name</span>
-          <input type="text" name="name" defaultValue={business?.name ?? ""} required className={inputClass} />
+          <span className="text-ds-caption text-ds-mute">Business name</span>
+          <FormInput type="text" name="name" defaultValue={business?.name ?? ""} required />
         </label>
 
         <label className={labelClass}>
-          <span className="text-sm text-navy-100">Industry</span>
-          <input type="text" name="industry" defaultValue={business?.industry ?? ""} className={inputClass} />
+          <span className="text-ds-caption text-ds-mute">Industry</span>
+          <FormInput type="text" name="industry" defaultValue={business?.industry ?? ""} />
         </label>
 
         <label className={labelClass}>
-          <span className="text-sm text-navy-100">Description</span>
-          <textarea name="description" defaultValue={business?.description ?? ""} rows={4} className={inputClass} />
+          <span className="text-ds-caption text-ds-mute">Description</span>
+          <textarea name="description" defaultValue={business?.description ?? ""} rows={4} className={textareaClass} />
         </label>
 
         <div className="flex gap-4">
           <label className={labelClass + " flex-1"}>
-            <span className="text-sm text-navy-100">Province</span>
-            <input type="text" name="province" defaultValue={business?.province ?? ""} className={inputClass} />
+            <span className="text-ds-caption text-ds-mute">Province</span>
+            <FormInput type="text" name="province" defaultValue={business?.province ?? ""} />
           </label>
           <label className={labelClass + " flex-1"}>
-            <span className="text-sm text-navy-100">Town</span>
-            <input type="text" name="town" defaultValue={business?.town ?? ""} className={inputClass} />
+            <span className="text-ds-caption text-ds-mute">Town</span>
+            <FormInput type="text" name="town" defaultValue={business?.town ?? ""} />
           </label>
         </div>
 
-        <button
-          type="submit"
-          className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
+        <Button type="submit" variant="primary" className="w-fit">
           Save profile
-        </button>
+        </Button>
       </form>
     </main>
   );

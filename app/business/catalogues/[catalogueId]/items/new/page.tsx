@@ -33,10 +33,10 @@ export default async function NewCatalogueItemPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Add item to {catalogue.name}</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Add item to {catalogue.name}</h1>
 
-      {searchParamsResolved.error && <p className="text-sm text-red-300">{searchParamsResolved.error}</p>}
+      {searchParamsResolved.error && <p className="text-ds-body-sm text-red-400">{searchParamsResolved.error}</p>}
 
       <ItemForm
         action={saveItem}

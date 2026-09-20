@@ -49,11 +49,11 @@ export default async function EditCatalogueItemPage({
   }));
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Edit {item.product_name}</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Edit {item.product_name}</h1>
 
-      {searchParamsResolved.saved && <p className="text-sm text-teal-300">Saved.</p>}
-      {searchParamsResolved.error && <p className="text-sm text-red-300">{searchParamsResolved.error}</p>}
+      {searchParamsResolved.saved && <p className="text-ds-body-sm text-ds-success">Saved.</p>}
+      {searchParamsResolved.error && <p className="text-ds-body-sm text-red-400">{searchParamsResolved.error}</p>}
 
       <ItemForm
         action={saveItem}
@@ -75,7 +75,7 @@ export default async function EditCatalogueItemPage({
         <input type="hidden" name="item_id" value={itemId} />
         <button
           type="submit"
-          className="rounded border border-red-400 px-4 py-2 text-sm font-semibold text-red-300 hover:bg-navy-800"
+          className="font-ds-sans rounded-ds-sm border border-red-400 px-ds-lg py-ds-md text-ds-body-sm font-semibold text-red-400 hover:bg-ds-canvas-level-2"
         >
           Delete item
         </button>

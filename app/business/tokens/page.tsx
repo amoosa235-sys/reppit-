@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { initializePurchase } from "./actions";
+import { Button } from "@/components/ui";
 
 function formatRands(cents: number) {
   return `R${(cents / 100).toFixed(2)}`;
@@ -55,39 +56,36 @@ export default async function TokensPage({
   ]);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Tokens</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Tokens</h1>
 
-      <p className="text-lg text-navy-100">Balance: {balance?.balance ?? 0} tokens</p>
+      <p className="text-ds-display-md">Balance: {balance?.balance ?? 0} tokens</p>
 
-      {params.purchased && <p className="text-sm text-teal-300">Purchase successful - tokens credited.</p>}
-      {params.error && <p className="text-sm text-red-300">{params.error}</p>}
+      {params.purchased && <p className="text-ds-body-sm text-ds-success">Purchase successful - tokens credited.</p>}
+      {params.error && <p className="text-ds-body-sm text-red-400">{params.error}</p>}
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold text-teal-300">Buy tokens</h2>
+        <h2 className="text-ds-display-md">Buy tokens</h2>
         {!packs || packs.length === 0 ? (
-          <p className="text-sm text-navy-100">No token packs are available right now.</p>
+          <p className="text-ds-body text-ds-body-md">No token packs are available right now.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {packs.map((pack) => (
               <form
                 key={pack.id}
                 action={initializePurchase}
-                className="flex items-center justify-between rounded border border-navy-500 p-4"
+                className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-lg"
               >
                 <input type="hidden" name="pack_id" value={pack.id} />
                 <div>
-                  <p className="font-medium">{pack.name}</p>
-                  <p className="text-sm text-navy-200">
+                  <p className="font-medium text-ds-ink">{pack.name}</p>
+                  <p className="text-ds-body-sm text-ds-mute">
                     {pack.token_count} tokens · {formatRands(pack.price_cents)}
                   </p>
                 </div>
-                <button
-                  type="submit"
-                  className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-                >
+                <Button type="submit" variant="primary">
                   Buy
-                </button>
+                </Button>
               </form>
             ))}
           </div>
@@ -95,23 +93,23 @@ export default async function TokensPage({
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-semibold text-teal-300">Recent activity</h2>
+        <h2 className="text-ds-display-md">Recent activity</h2>
         {!transactions || transactions.length === 0 ? (
-          <p className="text-sm text-navy-100">No token activity yet.</p>
+          <p className="text-ds-body text-ds-body-md">No token activity yet.</p>
         ) : (
-          <ul className="flex flex-col gap-1 text-sm">
+          <ul className="flex flex-col gap-1 text-ds-body-sm">
             {transactions.map((tx) => (
-              <li key={tx.id} className="flex justify-between rounded border border-navy-500 px-3 py-2">
+              <li key={tx.id} className="flex justify-between rounded-ds-sm border border-ds-hairline px-ds-lg py-ds-md">
                 <span className="capitalize">{tx.type}</span>
                 <span>{tx.type === "spend" ? "-" : "+"}{tx.token_count}</span>
-                <span className="text-navy-200">{new Date(tx.created_at).toLocaleDateString()}</span>
+                <span className="text-ds-mute">{new Date(tx.created_at).toLocaleDateString()}</span>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <Link href="/dashboard" className="text-sm text-teal-300 underline">
+      <Link href="/dashboard" className="text-ds-body-sm text-ds-link underline">
         Back to dashboard
       </Link>
     </main>
