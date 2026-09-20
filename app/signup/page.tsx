@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signup } from "./actions";
+import { signInWithGoogle, signInWithApple } from "@/lib/supabase/actions";
 
 export default async function SignUpPage({
   searchParams,
@@ -67,6 +68,33 @@ export default async function SignUpPage({
           className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
         >
           Sign up
+        </button>
+
+        <div className="flex items-center gap-3 text-xs text-navy-200">
+          <span className="h-px flex-1 bg-navy-500" />
+          or continue with
+          <span className="h-px flex-1 bg-navy-500" />
+        </div>
+
+        {/* formNoValidate: these buttons submit the same form as the
+            email/password fields above (so the selected role radio comes
+            along), but must skip HTML5 required-field validation on
+            email/password since the OAuth actions ignore them. */}
+        <button
+          type="submit"
+          formAction={signInWithGoogle}
+          formNoValidate
+          className="rounded border border-navy-500 px-4 py-2 font-semibold text-white hover:bg-navy-800"
+        >
+          Continue with Google
+        </button>
+        <button
+          type="submit"
+          formAction={signInWithApple}
+          formNoValidate
+          className="rounded border border-navy-500 px-4 py-2 font-semibold text-white hover:bg-navy-800"
+        >
+          Continue with Apple
         </button>
       </form>
 

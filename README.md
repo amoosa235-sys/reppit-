@@ -35,6 +35,45 @@ Storage). Deploy target: Vercel.
    Until `.env.local` has real Supabase credentials, requests will
    500 out of the auth middleware (`proxy.ts`) — that's expected.
 
+## OAuth login (Google, Apple)
+
+`/login` and `/signup` both have "Continue with Google/Apple" buttons
+(`signInWithGoogle`/`signInWithApple` in `lib/supabase/actions.ts`), but the
+providers themselves are configured outside this codebase - in the
+Supabase dashboard and, for each provider, that provider's own
+developer console:
+
+1. **Google** — Google Cloud Console → APIs & Services → Credentials →
+   create an OAuth 2.0 Client ID (type: Web application). Add
+   `https://<your-project-ref>.supabase.co/auth/v1/callback` as an
+   Authorized redirect URI. Paste the resulting Client ID and Client
+   Secret into Supabase → Authentication → Providers → Google, and
+   enable it.
+2. **Apple** — Apple Developer portal (paid Apple Developer Program
+   membership required) → register a Services ID with "Sign In with
+   Apple" enabled, configure it with your domain and the same
+   `https://<your-project-ref>.supabase.co/auth/v1/callback` redirect
+   URL, then generate a Sign In with Apple private key. Supabase →
+   Authentication → Providers → Apple wants the Services ID (as
+   Client ID), your Apple Team ID, the key's Key ID, and the private
+   key itself.
+3. Add your production domain (and any preview domains you care about)
+   to Supabase → Authentication → URL Configuration → Redirect URLs,
+   or the OAuth round trip will be rejected after the provider
+   redirects back.
+
+Signup asks for an account type (business/provider) up front; that
+choice has nowhere to go through Google/Apple's own sign-in flow
+(`signInWithOAuth()` carries no custom app metadata the way
+`signUp()`'s `options.data` does), so it's carried instead as a query
+param on `redirectTo` and picked up by `app/auth/callback/route.ts`,
+which patches the `handle_new_user()` trigger's default ('business')
+only for an account that callback itself just created — never a
+returning user's login. The login page's OAuth buttons pass no role
+(there's no selector there), so a first-time user who lands on
+`/login` instead of `/signup` gets the same 'business' default the
+trigger has always had.
+
 ## Scripts
 
 - `npm run dev` — start the dev server
