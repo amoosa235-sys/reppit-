@@ -1,9 +1,22 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-navy px-6 text-center text-white">
-      <h1 className="text-4xl font-bold text-teal-300">Reppit</h1>
+      {/* The logo's navy tones would merge into bg-navy without a light
+          backing - neither provided variant (transparent, white-background)
+          is a white-colored mark meant to sit directly on a dark page. */}
+      <div className="rounded-2xl bg-white px-6 py-4">
+        <Image
+          src="/brand/logo-full-transparent-400w.png"
+          alt="Reppit"
+          width={400}
+          height={389}
+          priority
+          className="h-auto w-56"
+        />
+      </div>
       <p className="max-w-md text-navy-100">
         Connecting businesses with sales reps and poster/signage printers across South Africa.
       </p>
