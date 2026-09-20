@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { LinkButton } from "@/components/ui";
 
 export default async function ProviderUnlocksPage() {
   const supabase = await createClient();
@@ -38,29 +38,26 @@ export default async function ProviderUnlocksPage() {
     : { data: null };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Businesses that unlocked you</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Businesses that unlocked you</h1>
 
       {!unlocks || unlocks.length === 0 ? (
-        <p className="text-navy-100">No businesses have unlocked your profile yet.</p>
+        <p className="text-ds-body text-ds-body-md">No businesses have unlocked your profile yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {unlocks.map((u) => {
             const business = u.businesses as unknown as { name: string; industry: string | null } | null;
             return (
-              <li key={u.id} className="flex items-center justify-between rounded border border-navy-500 p-3">
+              <li key={u.id} className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-lg">
                 <div>
-                  <p className="font-medium">{business?.name}</p>
-                  <p className="text-xs text-navy-200">
+                  <p className="font-medium text-ds-ink">{business?.name}</p>
+                  <p className="text-ds-caption text-ds-mute">
                     {business?.industry ?? "Business"} · unlocked {new Date(u.unlocked_at).toLocaleDateString()}
                   </p>
                 </div>
-                <Link
-                  href={`/messages/${u.id}`}
-                  className="rounded bg-teal-500 px-3 py-1 text-sm font-semibold text-white hover:bg-teal-600"
-                >
+                <LinkButton href={`/messages/${u.id}`} variant="primary">
                   Message
-                </Link>
+                </LinkButton>
               </li>
             );
           })}

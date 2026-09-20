@@ -75,19 +75,19 @@ export default async function ProviderProfilePage({
   }));
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Your provider profile</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Your provider profile</h1>
 
       {providerProfile && (
-        <p className="text-sm text-navy-100">
+        <p className="text-ds-body-sm text-ds-body">
           Tier: {providerProfile.tier} · Verification: {providerProfile.verification_status} ·{" "}
-          <Link href="/provider/verification" className="text-teal-300 underline">
+          <Link href="/provider/verification" className="text-ds-link underline">
             Submit verification documents
           </Link>
           {providerProfile.category === "logistics" && (
             <>
               {" · "}
-              <Link href="/provider/hubs" className="text-teal-300 underline">
+              <Link href="/provider/hubs" className="text-ds-link underline">
                 Manage your hubs
               </Link>
             </>
@@ -95,8 +95,8 @@ export default async function ProviderProfilePage({
         </p>
       )}
 
-      {params.saved && <p className="text-sm text-teal-300">Saved.</p>}
-      {params.error && <p className="text-sm text-red-300">{params.error}</p>}
+      {params.saved && <p className="text-ds-body-sm text-ds-success">Saved.</p>}
+      {params.error && <p className="text-ds-body-sm text-red-400">{params.error}</p>}
 
       <ProviderProfileForm
         action={saveProviderProfile}

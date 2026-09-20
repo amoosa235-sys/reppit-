@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { login } from "./actions";
 import { signInWithGoogle, signInWithApple } from "@/lib/supabase/actions";
+import { Button, FormInput } from "@/components/ui";
 
 export default async function LoginPage({
   searchParams,
@@ -10,69 +11,46 @@ export default async function LoginPage({
   const params = await searchParams;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-navy px-6 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Log in to Reppit</h1>
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-ds-canvas px-6 text-ds-ink">
+      <h1 className="text-ds-display-md">Log in to Reppit</h1>
 
       <form action={login} className="flex w-full max-w-sm flex-col gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Email</span>
-          <input
-            type="email"
-            name="email"
-            required
-            className="rounded px-3 py-2 text-navy-900"
-          />
+          <span className="text-ds-mute text-ds-caption">Email</span>
+          <FormInput type="email" name="email" required />
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Password</span>
-          <input
-            type="password"
-            name="password"
-            required
-            className="rounded px-3 py-2 text-navy-900"
-          />
+          <span className="text-ds-mute text-ds-caption">Password</span>
+          <FormInput type="password" name="password" required />
         </label>
 
-        {params.error && <p className="text-sm text-red-300">{params.error}</p>}
+        {params.error && <p className="text-ds-body-sm text-red-400">{params.error}</p>}
 
-        <button
-          type="submit"
-          className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
+        <Button type="submit" variant="primary">
           Log in
-        </button>
+        </Button>
 
-        <div className="flex items-center gap-3 text-xs text-navy-200">
-          <span className="h-px flex-1 bg-navy-500" />
+        <div className="flex items-center gap-3 text-ds-caption text-ds-mute">
+          <span className="h-px flex-1 bg-ds-hairline" />
           or continue with
-          <span className="h-px flex-1 bg-navy-500" />
+          <span className="h-px flex-1 bg-ds-hairline" />
         </div>
 
         {/* formNoValidate: submits the same form as the email/password
             fields above, skipping their required-field validation, since
             the OAuth actions ignore those two fields entirely. */}
-        <button
-          type="submit"
-          formAction={signInWithGoogle}
-          formNoValidate
-          className="rounded border border-navy-500 px-4 py-2 font-semibold text-white hover:bg-navy-800"
-        >
+        <Button type="submit" formAction={signInWithGoogle} formNoValidate variant="secondary" className="w-full">
           Continue with Google
-        </button>
-        <button
-          type="submit"
-          formAction={signInWithApple}
-          formNoValidate
-          className="rounded border border-navy-500 px-4 py-2 font-semibold text-white hover:bg-navy-800"
-        >
+        </Button>
+        <Button type="submit" formAction={signInWithApple} formNoValidate variant="secondary" className="w-full">
           Continue with Apple
-        </button>
+        </Button>
       </form>
 
-      <p className="text-sm text-navy-100">
+      <p className="text-ds-body-sm text-ds-body">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-teal-300 underline">
+        <Link href="/signup" className="text-ds-link underline">
           Sign up
         </Link>
       </p>

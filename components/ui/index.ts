@@ -1,5 +1,7 @@
-export { Button } from "./Button";
+export { Button, BUTTON_VARIANT_CLASSES } from "./Button";
 export type { ButtonProps, ButtonVariant } from "./Button";
+export { LinkButton } from "./LinkButton";
+export type { LinkButtonProps } from "./LinkButton";
 export { Badge } from "./Badge";
 export type { BadgeProps, BadgeVariant } from "./Badge";
 export { Pill } from "./Pill";

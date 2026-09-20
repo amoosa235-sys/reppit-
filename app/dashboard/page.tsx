@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/supabase/actions";
+import { Button, LinkButton } from "@/components/ui";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -21,142 +21,82 @@ export default async function DashboardPage() {
     .single();
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-navy px-6 text-center text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Welcome back</h1>
-      <p className="text-navy-100">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-ds-canvas px-6 text-center text-ds-ink">
+      <h1 className="text-ds-display-md">Welcome back</h1>
+      <p className="text-ds-body text-ds-body-md">
         Signed in as {user.email} · role: {profile?.role ?? "unknown"}
       </p>
       {profile?.role === "provider" && (
-        <div className="flex gap-4">
-          <Link
-            href="/provider/profile"
-            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-          >
+        <div className="flex flex-wrap justify-center gap-3">
+          <LinkButton href="/provider/profile" variant="secondary">
             Manage your provider profile
-          </Link>
-          <Link
-            href="/provider/verification"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/provider/verification" variant="secondary">
             Verification
-          </Link>
-          <Link
-            href="/provider/unlocks"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/provider/unlocks" variant="secondary">
             Businesses that unlocked you
-          </Link>
-          <Link
-            href="/provider/subscription"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/provider/subscription" variant="secondary">
             Annual subscription
-          </Link>
-          <Link
-            href="/orders"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/orders" variant="secondary">
             Orders
-          </Link>
-          <Link
-            href="/provider/hubs"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/provider/hubs" variant="secondary">
             Hubs
-          </Link>
-          <Link
-            href="/engagements"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/engagements" variant="secondary">
             Engagements
-          </Link>
+          </LinkButton>
         </div>
       )}
       {profile?.role === "business" && (
-        <div className="flex gap-4">
-          <Link
-            href="/business/profile"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+        <div className="flex flex-wrap justify-center gap-3">
+          <LinkButton href="/business/profile" variant="secondary">
             Business profile
-          </Link>
-          <Link
-            href="/browse"
-            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-          >
+          </LinkButton>
+          <LinkButton href="/browse" variant="secondary">
             Browse providers
-          </Link>
-          <Link
-            href="/catalogues"
-            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-          >
+          </LinkButton>
+          <LinkButton href="/catalogues" variant="secondary">
             Browse catalogues
-          </Link>
-          <Link
-            href="/loads"
-            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-          >
+          </LinkButton>
+          <LinkButton href="/loads" variant="secondary">
             Browse loads
-          </Link>
-          <Link
-            href="/business/tokens"
-            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-          >
+          </LinkButton>
+          <LinkButton href="/business/tokens" variant="secondary">
             Buy tokens
-          </Link>
-          <Link
-            href="/business/unlocks"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/business/unlocks" variant="secondary">
             Your unlocks
-          </Link>
-          <Link
-            href="/business/catalogues"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/business/catalogues" variant="secondary">
             Your catalogues
-          </Link>
-          <Link
-            href="/orders"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/orders" variant="secondary">
             Orders
-          </Link>
-          <Link
-            href="/business/load-bookings"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/business/load-bookings" variant="secondary">
             Load bookings
-          </Link>
-          <Link
-            href="/business/enterprise"
-            className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-          >
+          </LinkButton>
+          <LinkButton href="/business/enterprise" variant="secondary">
             Enterprise
-          </Link>
-          <Link
-            href="/engagements"
-            className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-          >
+          </LinkButton>
+          <LinkButton href="/engagements" variant="secondary">
             Engagements
-          </Link>
+          </LinkButton>
         </div>
       )}
       {profile?.role === "admin" && (
-        <Link
-          href="/admin/verifications"
-          className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
+        <LinkButton href="/admin/verifications" variant="secondary">
           Review pending verifications
-        </Link>
+        </LinkButton>
       )}
       <form action={signOut}>
-        <button
-          type="submit"
-          className="rounded border border-teal-300 px-4 py-2 font-semibold text-teal-300 hover:bg-navy-800"
-        >
+        <Button type="submit" variant="secondary">
           Sign out
-        </button>
+        </Button>
       </form>
     </main>
   );
