@@ -24,6 +24,124 @@
   --color-teal-700: #095355;
   --color-teal-800: #063839;
   --color-teal-900: #031c1d;
+
+  /* ---------------------------------------------------------------------
+   * "Linear" design system import (see design-system artifact tokens.json)
+   * — a separate dark, high-restraint token set for components/ui/*, kept
+   * under a "ds-" namespace throughout (colors, font, text styles, radius,
+   * shadow, spacing) so it never collides with the navy/teal tokens above
+   * or with Tailwind's own default scale (its radius-sm/md/lg/xl names in
+   * particular would otherwise silently override Tailwind's built-in
+   * rounded-sm/md/lg/xl utilities used nowhere in this app today, but a
+   * landmine for later). Single "dark" theme only - the source tokens.json
+   * defines no light variant.
+   * --------------------------------------------------------------------- */
+  --color-ds-primary: #e4f222;
+  --color-ds-on-primary: #08090a;
+  --color-ds-canvas: #08090a;
+  --color-ds-canvas-marketing: #010102;
+  --color-ds-canvas-panel: #0f1011;
+  --color-ds-canvas-level-3: #191a1b;
+  --color-ds-canvas-line-tint: #141516;
+  --color-ds-ink: #f7f8f8;
+  --color-ds-body: #d0d6e0;
+  --color-ds-mute: #8a8f98;
+  --color-ds-dim: #62666d;
+  --color-ds-hairline: #23252a;
+  --color-ds-hairline-secondary: #34343a;
+  --color-ds-hairline-tertiary: #3e3e44;
+  --color-ds-hairline-translucent: rgba(255, 255, 255, 0.05);
+  --color-ds-link: #828fff;
+  --color-ds-link-hover: #828fff;
+  --color-ds-brand-purple: #5e6ad2;
+  --color-ds-security: #7a7fad;
+  --color-ds-success: #27a644;
+  --color-ds-button-invert-bg: #e5e5e6;
+  --color-ds-button-invert-bg-hover: #ffffff;
+  --color-ds-overlay: rgba(0, 0, 0, 0.85);
+  --color-ds-surface-card: rgba(255, 255, 255, 0.01);
+  --color-ds-surface-button: rgba(255, 255, 255, 0.04);
+
+  /* Falls back to system fonts until Inter Variable is actually loaded
+   * (app/layout.tsx wires --font-inter via next/font/google). */
+  --font-ds-sans: var(--font-inter), "SF Pro Display", -apple-system, system-ui, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
+  --text-ds-display-xl: 64px;
+  --text-ds-display-xl--line-height: 64px;
+  --text-ds-display-xl--font-weight: 510;
+  --text-ds-display-xl--letter-spacing: -1.408px;
+
+  --text-ds-display-lg: 40px;
+  --text-ds-display-lg--line-height: 44px;
+  --text-ds-display-lg--font-weight: 510;
+  --text-ds-display-lg--letter-spacing: -0.88px;
+
+  --text-ds-display-md: 20px;
+  --text-ds-display-md--line-height: 27px;
+  --text-ds-display-md--font-weight: 510;
+  --text-ds-display-md--letter-spacing: -0.24px;
+
+  --text-ds-body-lg: 17px;
+  --text-ds-body-lg--line-height: 27px;
+  --text-ds-body-lg--font-weight: 400;
+  --text-ds-body-lg--letter-spacing: -0.011em;
+
+  --text-ds-body-md: 15px;
+  --text-ds-body-md--line-height: 24px;
+  --text-ds-body-md--font-weight: 400;
+  --text-ds-body-md--letter-spacing: -0.011em;
+
+  --text-ds-body-sm: 14px;
+  --text-ds-body-sm--line-height: 21px;
+  --text-ds-body-sm--font-weight: 400;
+  --text-ds-body-sm--letter-spacing: -0.011em;
+
+  --text-ds-caption: 12px;
+  --text-ds-caption--line-height: 17px;
+  --text-ds-caption--font-weight: 400;
+
+  --text-ds-tiny: 10px;
+  --text-ds-tiny--line-height: 15px;
+  --text-ds-tiny--font-weight: 400;
+
+  --text-ds-button-cta: 16px;
+  --text-ds-button-cta--line-height: 24px;
+  --text-ds-button-cta--font-weight: 400;
+
+  --text-ds-button-sm: 13px;
+  --text-ds-button-sm--line-height: 20px;
+  --text-ds-button-sm--font-weight: 400;
+
+  --text-ds-nav-label: 14px;
+  --text-ds-nav-label--line-height: 20px;
+  --text-ds-nav-label--font-weight: 400;
+
+  --spacing-ds-xxs: 4px;
+  --spacing-ds-xs: 6px;
+  --spacing-ds-sm: 8px;
+  --spacing-ds-md: 12px;
+  --spacing-ds-lg: 16px;
+  --spacing-ds-xl: 24px;
+  --spacing-ds-2xl: 32px;
+  --spacing-ds-3xl: 48px;
+  --spacing-ds-4xl: 64px;
+  --spacing-ds-5xl: 96px;
+  --spacing-ds-6xl: 128px;
+  --spacing-ds-section: 160px;
+
+  --radius-ds-none: 0px;
+  --radius-ds-xs: 4px;
+  --radius-ds-sm: 6px;
+  --radius-ds-button: 8px;
+  --radius-ds-md: 12px;
+  --radius-ds-lg: 16px;
+  --radius-ds-xl: 24px;
+  --radius-ds-pill: 9999px;
+  --radius-ds-full: 50%;
+
+  --shadow-ds-card: 0px 0px 0px 1px rgba(0, 0, 0, 0.2);
+  --shadow-ds-panel: 0px 4px 24px rgba(0, 0, 0, 0.4);
 }
 
 :root {
