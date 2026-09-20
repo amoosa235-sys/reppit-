@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { saveHub } from "../actions";
+import { Button, FormInput, LinkButton } from "@/components/ui";
 
 export default async function HubDetailPage({
   params,
@@ -41,81 +42,74 @@ export default async function HubDetailPage({
     .order("departure_date", { ascending: true });
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <Link href="/provider/hubs" className="text-sm text-teal-300 underline">
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <Link href="/provider/hubs" className="text-ds-body-sm text-ds-link underline">
         Back to hubs
       </Link>
 
-      <h1 className="text-2xl font-bold text-teal-300">{hub.name}</h1>
+      <h1 className="text-ds-display-md">{hub.name}</h1>
 
-      {searchParamsResolved.saved && <p className="text-sm text-teal-300">Saved.</p>}
-      {searchParamsResolved.error && <p className="text-sm text-red-300">{searchParamsResolved.error}</p>}
+      {searchParamsResolved.saved && <p className="text-ds-body-sm text-ds-success">Saved.</p>}
+      {searchParamsResolved.error && <p className="text-ds-body-sm text-red-400">{searchParamsResolved.error}</p>}
 
-      <form action={saveHub} className="flex flex-col gap-4 rounded border border-navy-500 p-4">
+      <form action={saveHub} className="flex flex-col gap-4 rounded-ds-sm border border-ds-hairline p-ds-lg">
         <input type="hidden" name="hub_id" value={hubId} />
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Hub name</span>
-          <input type="text" name="name" defaultValue={hub.name} required className="rounded px-3 py-2 text-navy-900" />
+          <span className="text-ds-caption text-ds-mute">Hub name</span>
+          <FormInput type="text" name="name" defaultValue={hub.name} required />
         </label>
 
         <div className="flex gap-4">
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-sm text-navy-100">Province</span>
-            <input type="text" name="province" className="rounded px-3 py-2 text-navy-900" />
+            <span className="text-ds-caption text-ds-mute">Province</span>
+            <FormInput type="text" name="province" />
           </label>
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-sm text-navy-100">Town</span>
-            <input type="text" name="town" className="rounded px-3 py-2 text-navy-900" />
+            <span className="text-ds-caption text-ds-mute">Town</span>
+            <FormInput type="text" name="town" />
           </label>
         </div>
-        <p className="text-xs text-navy-200">Leave blank to keep the current location.</p>
+        <p className="text-ds-caption text-ds-mute">Leave blank to keep the current location.</p>
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Routes served</span>
-          <input
+          <span className="text-ds-caption text-ds-mute">Routes served</span>
+          <FormInput
             type="text"
             name="routes_served"
             defaultValue={(hub.routes_served ?? []).join(", ")}
-            className="rounded px-3 py-2 text-navy-900"
           />
-          <span className="text-xs text-navy-200">Comma separated</span>
+          <span className="text-ds-caption text-ds-mute">Comma separated</span>
         </label>
 
-        <button
-          type="submit"
-          className="w-fit rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
+        <Button type="submit" variant="primary" className="w-fit">
           Save
-        </button>
+        </Button>
       </form>
 
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-teal-300">Consolidated loads</h2>
-        <Link
-          href={`/provider/hubs/${hubId}/loads/new`}
-          className="rounded bg-teal-500 px-3 py-1 text-sm font-semibold text-white hover:bg-teal-600"
-        >
+        <h2 className="text-ds-display-md">Consolidated loads</h2>
+        <LinkButton href={`/provider/hubs/${hubId}/loads/new`} variant="primary">
           New load
-        </Link>
+        </LinkButton>
       </div>
 
       {!loads || loads.length === 0 ? (
-        <p className="text-sm text-navy-100">No loads yet.</p>
+        <p className="text-ds-body text-ds-body-md">No loads yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {loads.map((l) => (
             <li key={l.id}>
               <Link
                 href={`/provider/hubs/${hubId}/loads/${l.id}`}
-                className="flex items-center justify-between rounded border border-navy-500 p-3 text-sm hover:bg-navy-800"
+                className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-lg hover:border-ds-hairline-secondary"
               >
                 <span>{l.destination_region}</span>
                 <span className="capitalize">{l.status}</span>
                 <span>
                   {l.capacity_booked}/{l.capacity ?? "-"}
                 </span>
-                <span className="text-navy-200">{l.departure_date}</span>
+                <span className="text-ds-mute">{l.departure_date}</span>
               </Link>
             </li>
           ))}

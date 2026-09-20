@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { saveHub } from "../actions";
+import { Button, FormInput } from "@/components/ui";
 
 export default async function NewHubPage({
   searchParams,
@@ -29,45 +30,41 @@ export default async function NewHubPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">New hub</h1>
+    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">New hub</h1>
 
-      {params.error && <p className="text-sm text-red-300">{params.error}</p>}
+      {params.error && <p className="text-ds-body-sm text-red-400">{params.error}</p>}
 
       <form action={saveHub} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Hub name</span>
-          <input type="text" name="name" required className="rounded px-3 py-2 text-navy-900" />
+          <span className="text-ds-caption text-ds-mute">Hub name</span>
+          <FormInput type="text" name="name" required />
         </label>
 
         <div className="flex gap-4">
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-sm text-navy-100">Province</span>
-            <input type="text" name="province" className="rounded px-3 py-2 text-navy-900" />
+            <span className="text-ds-caption text-ds-mute">Province</span>
+            <FormInput type="text" name="province" />
           </label>
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-sm text-navy-100">Town</span>
-            <input type="text" name="town" className="rounded px-3 py-2 text-navy-900" />
+            <span className="text-ds-caption text-ds-mute">Town</span>
+            <FormInput type="text" name="town" />
           </label>
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Routes served</span>
-          <input
+          <span className="text-ds-caption text-ds-mute">Routes served</span>
+          <FormInput
             type="text"
             name="routes_served"
-            className="rounded px-3 py-2 text-navy-900"
             placeholder="Johannesburg-Durban, Johannesburg-Cape Town"
           />
-          <span className="text-xs text-navy-200">Comma separated</span>
+          <span className="text-ds-caption text-ds-mute">Comma separated</span>
         </label>
 
-        <button
-          type="submit"
-          className="w-fit rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
+        <Button type="submit" variant="primary" className="w-fit">
           Create hub
-        </button>
+        </Button>
       </form>
     </main>
   );

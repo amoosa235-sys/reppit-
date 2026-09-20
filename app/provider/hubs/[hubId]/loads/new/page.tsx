@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { saveLoad } from "../actions";
+import { Button, FormInput } from "@/components/ui";
 
 export default async function NewLoadPage({
   params,
@@ -34,49 +35,40 @@ export default async function NewLoadPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">New load from {hub.name}</h1>
+    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">New load from {hub.name}</h1>
 
-      {searchParamsResolved.error && <p className="text-sm text-red-300">{searchParamsResolved.error}</p>}
+      {searchParamsResolved.error && <p className="text-ds-body-sm text-red-400">{searchParamsResolved.error}</p>}
 
       <form action={saveLoad} className="flex flex-col gap-4">
         <input type="hidden" name="hub_id" value={hubId} />
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Destination region</span>
-          <input type="text" name="destination_region" required className="rounded px-3 py-2 text-navy-900" />
+          <span className="text-ds-caption text-ds-mute">Destination region</span>
+          <FormInput type="text" name="destination_region" required />
         </label>
 
         <div className="flex gap-4">
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-sm text-navy-100">Capacity</span>
-            <input type="number" min={0} step="0.01" name="capacity" className="rounded px-3 py-2 text-navy-900" />
+            <span className="text-ds-caption text-ds-mute">Capacity</span>
+            <FormInput type="number" min={0} step="0.01" name="capacity" />
           </label>
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-sm text-navy-100">Price per unit (R)</span>
-            <input
-              type="number"
-              min={0}
-              step="0.01"
-              name="price_per_unit"
-              className="rounded px-3 py-2 text-navy-900"
-            />
+            <span className="text-ds-caption text-ds-mute">Price per unit (R)</span>
+            <FormInput type="number" min={0} step="0.01" name="price_per_unit" />
           </label>
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Departure date</span>
-          <input type="date" name="departure_date" required className="rounded px-3 py-2 text-navy-900" />
+          <span className="text-ds-caption text-ds-mute">Departure date</span>
+          <FormInput type="date" name="departure_date" required />
         </label>
 
         <input type="hidden" name="status" value="open" />
 
-        <button
-          type="submit"
-          className="w-fit rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
+        <Button type="submit" variant="primary" className="w-fit">
           Create load
-        </button>
+        </Button>
       </form>
     </main>
   );

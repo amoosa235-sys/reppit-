@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { saveLoad } from "../actions";
+import { Button, FormInput } from "@/components/ui";
 
 export default async function LoadDetailPage({
   params,
@@ -52,72 +53,72 @@ export default async function LoadDetailPage({
     .order("booked_at", { ascending: false });
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <Link href={`/provider/hubs/${hubId}`} className="text-sm text-teal-300 underline">
+    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <Link href={`/provider/hubs/${hubId}`} className="text-ds-body-sm text-ds-link underline">
         Back to {hub.name}
       </Link>
 
-      <h1 className="text-2xl font-bold text-teal-300">{load.destination_region}</h1>
+      <h1 className="text-ds-display-md">{load.destination_region}</h1>
 
-      {searchParamsResolved.saved && <p className="text-sm text-teal-300">Saved.</p>}
-      {searchParamsResolved.error && <p className="text-sm text-red-300">{searchParamsResolved.error}</p>}
+      {searchParamsResolved.saved && <p className="text-ds-body-sm text-ds-success">Saved.</p>}
+      {searchParamsResolved.error && <p className="text-ds-body-sm text-red-400">{searchParamsResolved.error}</p>}
 
-      <form action={saveLoad} className="flex flex-col gap-4 rounded border border-navy-500 p-4">
+      <form action={saveLoad} className="flex flex-col gap-4 rounded-ds-sm border border-ds-hairline p-ds-lg">
         <input type="hidden" name="hub_id" value={hubId} />
         <input type="hidden" name="load_id" value={loadId} />
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Destination region</span>
-          <input
+          <span className="text-ds-caption text-ds-mute">Destination region</span>
+          <FormInput
             type="text"
             name="destination_region"
             defaultValue={load.destination_region}
             required
-            className="rounded px-3 py-2 text-navy-900"
           />
         </label>
 
         <div className="flex gap-4">
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-sm text-navy-100">Capacity</span>
-            <input
+            <span className="text-ds-caption text-ds-mute">Capacity</span>
+            <FormInput
               type="number"
               min={0}
               step="0.01"
               name="capacity"
               defaultValue={load.capacity ?? ""}
-              className="rounded px-3 py-2 text-navy-900"
             />
           </label>
           <label className="flex flex-1 flex-col gap-1">
-            <span className="text-sm text-navy-100">Price per unit (R)</span>
-            <input
+            <span className="text-ds-caption text-ds-mute">Price per unit (R)</span>
+            <FormInput
               type="number"
               min={0}
               step="0.01"
               name="price_per_unit"
               defaultValue={load.price_per_unit ?? ""}
-              className="rounded px-3 py-2 text-navy-900"
             />
           </label>
         </div>
 
-        <p className="text-xs text-navy-200">Booked so far: {load.capacity_booked}</p>
+        <p className="text-ds-caption text-ds-mute">Booked so far: {load.capacity_booked}</p>
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Departure date</span>
-          <input
+          <span className="text-ds-caption text-ds-mute">Departure date</span>
+          <FormInput
             type="date"
             name="departure_date"
             defaultValue={load.departure_date}
             required
-            className="rounded px-3 py-2 text-navy-900"
           />
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-navy-100">Status</span>
-          <select name="status" defaultValue={load.status} className="rounded px-3 py-2 text-navy-900">
+          <span className="text-ds-caption text-ds-mute">Status</span>
+          <select
+            name="status"
+            defaultValue={load.status}
+            className="font-ds-sans h-9 bg-ds-canvas-level-3 text-ds-ink text-ds-body-sm border border-ds-hairline-secondary rounded-ds-sm px-ds-md outline-none focus:border-ds-hairline-tertiary"
+          >
             <option value="open">Open</option>
             <option value="full">Full</option>
             <option value="departed">Departed</option>
@@ -125,22 +126,19 @@ export default async function LoadDetailPage({
           </select>
         </label>
 
-        <button
-          type="submit"
-          className="w-fit rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
+        <Button type="submit" variant="primary" className="w-fit">
           Save
-        </button>
+        </Button>
       </form>
 
       <section className="flex flex-col gap-2">
-        <h2 className="font-semibold text-teal-300">Bookings</h2>
+        <h2 className="text-ds-display-md">Bookings</h2>
         {!bookings || bookings.length === 0 ? (
-          <p className="text-sm text-navy-100">No bookings yet.</p>
+          <p className="text-ds-body text-ds-body-md">No bookings yet.</p>
         ) : (
-          <ul className="flex flex-col gap-1 text-sm">
+          <ul className="flex flex-col gap-1 text-ds-body-sm">
             {bookings.map((b) => (
-              <li key={b.id} className="rounded border border-navy-500 p-2">
+              <li key={b.id} className="rounded-ds-sm border border-ds-hairline p-ds-md">
                 Quantity {b.quantity} · {b.tokens_spent} tokens · {new Date(b.booked_at).toLocaleDateString()}
               </li>
             ))}
