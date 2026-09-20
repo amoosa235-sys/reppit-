@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { reviewProvider } from "./actions";
+import { Button } from "@/components/ui";
 
 type PendingDoc = {
   id: string;
@@ -16,6 +17,9 @@ type PendingDoc = {
     users: { email: string } | null;
   } | null;
 };
+
+const selectClass =
+  "font-ds-sans h-9 bg-ds-canvas-level-3 text-ds-ink text-ds-body-sm border border-ds-hairline-secondary rounded-ds-sm px-ds-md outline-none focus:border-ds-hairline-tertiary";
 
 export default async function AdminVerificationsPage({
   searchParams,
@@ -82,38 +86,38 @@ export default async function AdminVerificationsPage({
   );
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Pending verifications</h1>
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Pending verifications</h1>
 
-      {error && <p className="text-sm text-red-300">Could not load submissions: {error.message}</p>}
-      {params.updated && <p className="text-sm text-teal-300">Provider updated.</p>}
-      {params.error && <p className="text-sm text-red-300">{params.error}</p>}
+      {error && <p className="text-ds-body-sm text-red-400">Could not load submissions: {error.message}</p>}
+      {params.updated && <p className="text-ds-body-sm text-ds-success">Provider updated.</p>}
+      {params.error && <p className="text-ds-body-sm text-red-400">{params.error}</p>}
 
       {groups.length === 0 ? (
-        <p className="text-navy-100">Nothing pending review.</p>
+        <p className="text-ds-body text-ds-body-md">Nothing pending review.</p>
       ) : (
         <div className="flex flex-col gap-6">
           {groups.map(({ provider, docs: providerDocs }) => (
-            <section key={provider.id} className="flex flex-col gap-3 rounded border border-navy-500 p-4">
+            <section key={provider.id} className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
               <div>
-                <h2 className="font-semibold">{provider.name}</h2>
-                <p className="text-xs text-navy-200">
+                <h2 className="font-medium text-ds-ink">{provider.name}</h2>
+                <p className="text-ds-caption text-ds-mute">
                   {provider.category} · {provider.users?.email ?? "unknown email"} · current tier:{" "}
                   {provider.tier} · current status: {provider.verification_status}
                 </p>
               </div>
 
-              <ul className="flex flex-col gap-1 text-sm">
+              <ul className="flex flex-col gap-1 text-ds-body-sm">
                 {providerDocs.map((doc) => (
                   <li key={doc.id}>
                     {doc.url ? (
-                      <a href={doc.url} target="_blank" rel="noreferrer" className="text-teal-300 underline">
+                      <a href={doc.url} target="_blank" rel="noreferrer" className="text-ds-link underline">
                         {doc.document_type}
                       </a>
                     ) : (
                       <span>{doc.document_type} (link unavailable)</span>
                     )}
-                    <span className="text-navy-200">
+                    <span className="text-ds-mute">
                       {" "}
                       · submitted {new Date(doc.submitted_at).toLocaleDateString()}
                     </span>
@@ -124,21 +128,21 @@ export default async function AdminVerificationsPage({
               <form action={reviewProvider} className="flex flex-wrap items-end gap-3">
                 <input type="hidden" name="provider_id" value={provider.id} />
 
-                <label className="flex flex-col gap-1 text-sm">
-                  <span className="text-navy-100">Tier</span>
-                  <select name="tier" defaultValue={provider.tier} className="rounded px-3 py-2 text-navy-900">
+                <label className="flex flex-col gap-1">
+                  <span className="text-ds-caption text-ds-mute">Tier</span>
+                  <select name="tier" defaultValue={provider.tier} className={selectClass}>
                     <option value="entry">Entry</option>
                     <option value="verified">Verified</option>
                     <option value="premium">Premium</option>
                   </select>
                 </label>
 
-                <label className="flex flex-col gap-1 text-sm">
-                  <span className="text-navy-100">Verification status</span>
+                <label className="flex flex-col gap-1">
+                  <span className="text-ds-caption text-ds-mute">Verification status</span>
                   <select
                     name="verification_status"
                     defaultValue="verified"
-                    className="rounded px-3 py-2 text-navy-900"
+                    className={selectClass}
                   >
                     <option value="verified">Verified</option>
                     <option value="rejected">Rejected</option>
@@ -146,12 +150,9 @@ export default async function AdminVerificationsPage({
                   </select>
                 </label>
 
-                <button
-                  type="submit"
-                  className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-                >
+                <Button type="submit" variant="primary">
                   Save
-                </button>
+                </Button>
               </form>
             </section>
           ))}

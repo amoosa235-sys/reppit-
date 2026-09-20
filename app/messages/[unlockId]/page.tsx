@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { sendMessage, submitRating, createOrder, createEngagement } from "./actions";
+import { Button, FormInput } from "@/components/ui";
 
 type UnlockRow = {
   id: string;
@@ -11,6 +12,11 @@ type UnlockRow = {
   provider_profiles: { user_id: string; name: string } | null;
   catalogues: { business_user_id: string; name: string } | null;
 };
+
+const selectClass =
+  "font-ds-sans h-9 bg-ds-canvas-level-3 text-ds-ink text-ds-body-sm border border-ds-hairline-secondary rounded-ds-sm px-ds-md outline-none focus:border-ds-hairline-tertiary";
+const textareaClass =
+  "font-ds-sans bg-ds-canvas-level-3 text-ds-ink text-ds-body-sm border border-ds-hairline-secondary rounded-ds-sm px-ds-md py-ds-sm outline-none focus:border-ds-hairline-tertiary";
 
 export default async function MessageThreadPage({
   params,
@@ -123,30 +129,30 @@ export default async function MessageThreadPage({
     : { data: null };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
       <div>
-        <h1 className="text-2xl font-bold text-teal-300">{counterpartName ?? "Conversation"}</h1>
+        <h1 className="text-ds-display-md">{counterpartName ?? "Conversation"}</h1>
         {counterpartAccount?.email && (
-          <p className="text-sm text-navy-100">Contact: {counterpartAccount.email}</p>
+          <p className="text-ds-body text-ds-body-sm">Contact: {counterpartAccount.email}</p>
         )}
       </div>
 
-      {errorParam && <p className="text-sm text-red-300">{errorParam}</p>}
+      {errorParam && <p className="text-ds-body-sm text-red-400">{errorParam}</p>}
 
       <div className="flex flex-col gap-2">
         {!messages || messages.length === 0 ? (
-          <p className="text-sm text-navy-100">No messages yet - say hello.</p>
+          <p className="text-ds-body text-ds-body-sm">No messages yet - say hello.</p>
         ) : (
           messages.map((m) => (
             <div
               key={m.id}
               className={
-                "max-w-[80%] rounded px-3 py-2 text-sm " +
-                (m.sender_id === user.id ? "self-end bg-teal-700" : "self-start bg-navy-800")
+                "max-w-[80%] rounded-ds-sm px-ds-lg py-ds-md text-ds-body-sm " +
+                (m.sender_id === user.id ? "self-end bg-ds-canvas-level-3" : "self-start bg-ds-canvas-level-2")
               }
             >
               <p>{m.body}</p>
-              <p className="mt-1 text-xs text-navy-200">{new Date(m.created_at).toLocaleString()}</p>
+              <p className="mt-1 text-ds-caption text-ds-mute">{new Date(m.created_at).toLocaleString()}</p>
             </div>
           ))
         )}
@@ -159,23 +165,20 @@ export default async function MessageThreadPage({
           name="body"
           required
           rows={3}
-          className="rounded px-3 py-2 text-navy-900"
+          className={textareaClass}
           placeholder="Write a message..."
         />
-        <button
-          type="submit"
-          className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-        >
+        <Button type="submit" variant="primary" className="w-fit">
           Send
-        </button>
+        </Button>
       </form>
 
       {!isCatalogueUnlock && (
-      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-        <h2 className="font-semibold text-teal-300">Rating</h2>
+      <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+        <h2 className="text-ds-display-md">Rating</h2>
 
         {myRating ? (
-          <p className="text-sm text-navy-100">
+          <p className="text-ds-body text-ds-body-sm">
             You rated {counterpartName ?? "them"}: {myRating.rating}/5
             {myRating.comment && ` - "${myRating.comment}"`}
           </p>
@@ -183,9 +186,9 @@ export default async function MessageThreadPage({
           <form action={submitRating} className="flex flex-col gap-2">
             <input type="hidden" name="unlock_id" value={unlockId} />
             <input type="hidden" name="ratee_id" value={counterpartUserId ?? ""} />
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-navy-100">Rate {counterpartName ?? "them"}</span>
-              <select name="rating" required defaultValue="5" className="rounded px-3 py-2 text-navy-900">
+            <label className="flex flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Rate {counterpartName ?? "them"}</span>
+              <select name="rating" required defaultValue="5" className={selectClass}>
                 <option value="5">5 - Excellent</option>
                 <option value="4">4 - Good</option>
                 <option value="3">3 - Okay</option>
@@ -197,19 +200,16 @@ export default async function MessageThreadPage({
               name="comment"
               rows={2}
               placeholder="Optional comment"
-              className="rounded px-3 py-2 text-navy-900"
+              className={textareaClass}
             />
-            <button
-              type="submit"
-              className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-            >
+            <Button type="submit" variant="primary" className="w-fit">
               Submit rating
-            </button>
+            </Button>
           </form>
         )}
 
         {theirRating && (
-          <p className="text-sm text-navy-200">
+          <p className="text-ds-body-sm text-ds-mute">
             {counterpartName ?? "They"} rated you: {theirRating.rating}/5
             {theirRating.comment && ` - "${theirRating.comment}"`}
           </p>
@@ -217,22 +217,22 @@ export default async function MessageThreadPage({
       </section>
       )}
 
-      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-        <h2 className="font-semibold text-teal-300">Orders</h2>
+      <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+        <h2 className="text-ds-display-md">Orders</h2>
 
         {!orders || orders.length === 0 ? (
-          <p className="text-sm text-navy-100">No orders yet.</p>
+          <p className="text-ds-body text-ds-body-sm">No orders yet.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {orders.map((o) => (
               <li key={o.id}>
                 <Link
                   href={`/orders/${o.id}`}
-                  className="flex items-center justify-between rounded border border-navy-500 p-3 text-sm hover:bg-navy-800"
+                  className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm hover:border-ds-hairline-secondary"
                 >
                   <span className="capitalize">{o.stage.replace(/_/g, " ")}</span>
                   <span>R{o.price_total}</span>
-                  <span className="text-navy-200">{new Date(o.created_at).toLocaleDateString()}</span>
+                  <span className="text-ds-mute">{new Date(o.created_at).toLocaleDateString()}</span>
                 </Link>
               </li>
             ))}
@@ -242,55 +242,48 @@ export default async function MessageThreadPage({
         {isBusiness && (
           <form action={createOrder} className="flex flex-col gap-2">
             <input type="hidden" name="unlock_id" value={unlockId} />
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-navy-100">Description</span>
-              <textarea name="description" rows={2} className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Description</span>
+              <textarea name="description" rows={2} className={textareaClass} />
             </label>
             <div className="flex gap-4">
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Quantity</span>
-                <input type="number" min={0} name="quantity" className="rounded px-3 py-2 text-navy-900" />
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Quantity</span>
+                <FormInput type="number" min={0} name="quantity" />
               </label>
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Total price (R)</span>
-                <input
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Total price (R)</span>
+                <FormInput
                   type="number"
                   min={0}
                   step="0.01"
                   name="price_total"
                   required
-                  className="rounded px-3 py-2 text-navy-900"
                 />
               </label>
             </div>
-            <button
-              type="submit"
-              className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-            >
+            <Button type="submit" variant="primary" className="w-fit">
               Create order
-            </button>
+            </Button>
           </form>
         )}
       </section>
 
       {!isCatalogueUnlock && (
-        <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-          <h2 className="font-semibold text-teal-300">Engagement</h2>
+        <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+          <h2 className="text-ds-display-md">Engagement</h2>
 
           {!engagements || engagements.length === 0 ? (
             <>
-              <p className="text-sm text-navy-100">
+              <p className="text-ds-body text-ds-body-sm">
                 No ongoing engagement yet - a one-off unlock, not a long-term relationship.
               </p>
               {isBusiness && (
                 <form action={createEngagement}>
                   <input type="hidden" name="unlock_id" value={unlockId} />
-                  <button
-                    type="submit"
-                    className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-                  >
+                  <Button type="submit" variant="primary" className="w-fit">
                     Start engagement (Enterprise)
-                  </button>
+                  </Button>
                 </form>
               )}
             </>
@@ -300,10 +293,10 @@ export default async function MessageThreadPage({
                 <li key={e.id}>
                   <Link
                     href={`/engagements/${e.id}`}
-                    className="flex items-center justify-between rounded border border-navy-500 p-3 text-sm hover:bg-navy-800"
+                    className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm hover:border-ds-hairline-secondary"
                   >
                     <span className="capitalize">{e.status}</span>
-                    <span className="text-navy-200">{new Date(e.started_at).toLocaleDateString()}</span>
+                    <span className="text-ds-mute">{new Date(e.started_at).toLocaleDateString()}</span>
                   </Link>
                 </li>
               ))}
@@ -312,7 +305,7 @@ export default async function MessageThreadPage({
         </section>
       )}
 
-      <Link href="/dashboard" className="text-sm text-teal-300 underline">
+      <Link href="/dashboard" className="text-ds-body-sm text-ds-link underline">
         Back to dashboard
       </Link>
     </main>

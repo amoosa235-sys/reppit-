@@ -13,6 +13,7 @@ import {
 } from "./sales-rep/actions";
 import { createCampaign, updateCampaign, uploadMarketingAsset } from "./marketing/actions";
 import { setPaymentTerms, setPaymentRecipient } from "./payment-terms/actions";
+import { Button, FormInput } from "@/components/ui";
 
 type EngagementRow = {
   id: string;
@@ -29,6 +30,13 @@ const FREQUENCY_DAYS: Record<string, number> = {
   weekly: 7,
   monthly: 30,
 };
+
+const selectClass =
+  "font-ds-sans h-9 bg-ds-canvas-level-3 text-ds-ink text-ds-body-sm border border-ds-hairline-secondary rounded-ds-sm px-ds-md outline-none focus:border-ds-hairline-tertiary";
+const smallSelectClass =
+  "font-ds-sans h-8 bg-ds-canvas-level-3 text-ds-ink text-ds-caption border border-ds-hairline-secondary rounded-ds-sm px-ds-sm outline-none focus:border-ds-hairline-tertiary";
+const textareaClass =
+  "font-ds-sans bg-ds-canvas-level-3 text-ds-ink text-ds-body-sm border border-ds-hairline-secondary rounded-ds-sm px-ds-md py-ds-sm outline-none focus:border-ds-hairline-tertiary";
 
 function daysSince(dateStr: string): number {
   return Math.max(0, (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
@@ -204,67 +212,64 @@ export default async function EngagementDetailPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <Link href="/engagements" className="text-sm text-teal-300 underline">
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <Link href="/engagements" className="text-ds-body-sm text-ds-link underline">
         Back to engagements
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold text-teal-300">{counterpartName ?? "Engagement"}</h1>
+        <h1 className="text-ds-display-md">{counterpartName ?? "Engagement"}</h1>
         {counterpartAccount?.email && (
-          <p className="text-sm text-navy-100">Contact: {counterpartAccount.email}</p>
+          <p className="text-ds-body text-ds-body-sm">Contact: {counterpartAccount.email}</p>
         )}
       </div>
 
-      {searchParamsResolved.saved && <p className="text-sm text-teal-300">Saved.</p>}
-      {searchParamsResolved.error && <p className="text-sm text-red-300">{searchParamsResolved.error}</p>}
+      {searchParamsResolved.saved && <p className="text-ds-body-sm text-ds-success">Saved.</p>}
+      {searchParamsResolved.error && <p className="text-ds-body-sm text-red-400">{searchParamsResolved.error}</p>}
 
-      <form action={updateEngagementStatus} className="flex flex-col gap-3 rounded border border-navy-500 p-4">
+      <form action={updateEngagementStatus} className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
         <input type="hidden" name="engagement_id" value={engagementId} />
 
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-navy-100">Status</span>
-          <select name="status" defaultValue={engagement.status} className="rounded px-3 py-2 text-navy-900">
+        <label className="flex flex-col gap-1">
+          <span className="text-ds-caption text-ds-mute">Status</span>
+          <select name="status" defaultValue={engagement.status} className={selectClass}>
             <option value="active">Active</option>
             <option value="paused">Paused</option>
             <option value="ended">Ended</option>
           </select>
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-navy-100">Notes</span>
+        <label className="flex flex-col gap-1">
+          <span className="text-ds-caption text-ds-mute">Notes</span>
           <textarea
             name="notes"
             defaultValue={engagement.notes ?? ""}
             rows={2}
-            className="rounded px-3 py-2 text-navy-900"
+            className={textareaClass}
           />
         </label>
 
-        <button
-          type="submit"
-          className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-        >
+        <Button type="submit" variant="primary" className="w-fit">
           Save
-        </button>
+        </Button>
       </form>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-semibold text-teal-300">Messages</h2>
+        <h2 className="text-ds-display-md">Messages</h2>
         <div className="flex flex-col gap-2">
           {!messages || messages.length === 0 ? (
-            <p className="text-sm text-navy-100">No messages yet.</p>
+            <p className="text-ds-body text-ds-body-sm">No messages yet.</p>
           ) : (
             messages.map((m) => (
               <div
                 key={m.id}
                 className={
-                  "max-w-[80%] rounded px-3 py-2 text-sm " +
-                  (m.sender_id === user.id ? "self-end bg-teal-700" : "self-start bg-navy-800")
+                  "max-w-[80%] rounded-ds-sm px-ds-lg py-ds-md text-ds-body-sm " +
+                  (m.sender_id === user.id ? "self-end bg-ds-canvas-level-3" : "self-start bg-ds-canvas-level-2")
                 }
               >
                 <p>{m.body}</p>
-                <p className="mt-1 text-xs text-navy-200">{new Date(m.created_at).toLocaleString()}</p>
+                <p className="mt-1 text-ds-caption text-ds-mute">{new Date(m.created_at).toLocaleString()}</p>
               </div>
             ))
           )}
@@ -277,38 +282,35 @@ export default async function EngagementDetailPage({
             name="body"
             required
             rows={3}
-            className="rounded px-3 py-2 text-navy-900"
+            className={textareaClass}
             placeholder="Write a message..."
           />
-          <button
-            type="submit"
-            className="w-fit rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-          >
+          <Button type="submit" variant="primary" className="w-fit">
             Send
-          </button>
+          </Button>
         </form>
       </section>
 
-      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-        <h2 className="font-semibold text-teal-300">Stock reports</h2>
+      <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+        <h2 className="text-ds-display-md">Stock reports</h2>
 
         {stockReportsWithUrls.length === 0 ? (
-          <p className="text-sm text-navy-100">No stock reports yet.</p>
+          <p className="text-ds-body text-ds-body-sm">No stock reports yet.</p>
         ) : (
           <ul className="flex flex-col gap-3">
             {stockReportsWithUrls.map((r) => (
-              <li key={r.id} className="rounded border border-navy-500 p-3 text-sm">
-                <p className="font-medium">
+              <li key={r.id} className="rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm">
+                <p className="font-medium text-ds-ink">
                   {r.product_name ?? "Product"} {r.sku && `(${r.sku})`}
                 </p>
-                <p className="text-xs text-navy-200">
+                <p className="text-ds-caption text-ds-mute">
                   {r.store_location && `${r.store_location} · `}
                   Qty on shelf: {r.quantity_on_shelf ?? "-"} · {new Date(r.reported_at).toLocaleDateString()}
                 </p>
                 {r.photoUrls.length > 0 && (
                   <div className="mt-2 grid grid-cols-4 gap-2">
                     {r.photoUrls.map((url) => (
-                      <div key={url} className="relative h-16 w-full overflow-hidden rounded">
+                      <div key={url} className="relative h-16 w-full overflow-hidden rounded-ds-sm">
                         <Image src={url} alt="" fill sizes="80px" className="object-cover" />
                       </div>
                     ))}
@@ -322,52 +324,49 @@ export default async function EngagementDetailPage({
         <form action={createStockReport} className="flex flex-col gap-3">
           <input type="hidden" name="engagement_id" value={engagementId} />
           <div className="flex gap-4">
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Store location</span>
-              <input type="text" name="store_location" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Store location</span>
+              <FormInput type="text" name="store_location" />
             </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Product name</span>
-              <input type="text" name="product_name" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Product name</span>
+              <FormInput type="text" name="product_name" />
             </label>
           </div>
           <div className="flex gap-4">
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">SKU</span>
-              <input type="text" name="sku" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">SKU</span>
+              <FormInput type="text" name="sku" />
             </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Quantity on shelf</span>
-              <input type="number" min={0} name="quantity_on_shelf" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Quantity on shelf</span>
+              <FormInput type="number" min={0} name="quantity_on_shelf" />
             </label>
           </div>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-navy-100">Shelf photos</span>
+          <label className="flex flex-col gap-1">
+            <span className="text-ds-caption text-ds-mute">Shelf photos</span>
             <input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple />
-            <span className="text-xs text-navy-200">Up to 4 photos, 5MB each.</span>
+            <span className="text-ds-caption text-ds-mute">Up to 4 photos, 5MB each.</span>
           </label>
-          <button
-            type="submit"
-            className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-          >
+          <Button type="submit" variant="primary" className="w-fit">
             Submit report
-          </button>
+          </Button>
         </form>
       </section>
 
-      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-        <h2 className="font-semibold text-teal-300">Store returns</h2>
+      <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+        <h2 className="text-ds-display-md">Store returns</h2>
 
         {!storeReturns || storeReturns.length === 0 ? (
-          <p className="text-sm text-navy-100">No returns reported yet.</p>
+          <p className="text-ds-body text-ds-body-sm">No returns reported yet.</p>
         ) : (
           <ul className="flex flex-col gap-3">
             {storeReturns.map((r) => (
-              <li key={r.id} className="rounded border border-navy-500 p-3 text-sm">
-                <p className="font-medium">
+              <li key={r.id} className="rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm">
+                <p className="font-medium text-ds-ink">
                   {r.product_name ?? "Product"} {r.quantity != null && `· qty ${r.quantity}`}
                 </p>
-                <p className="text-xs text-navy-200">
+                <p className="text-ds-caption text-ds-mute">
                   {r.store_location && `${r.store_location} · `}
                   {r.reason && `${r.reason} · `}
                   {new Date(r.reported_at).toLocaleDateString()} · status: {r.status}
@@ -375,17 +374,14 @@ export default async function EngagementDetailPage({
                 <form action={updateReturnStatus} className="mt-2 flex items-center gap-2">
                   <input type="hidden" name="engagement_id" value={engagementId} />
                   <input type="hidden" name="return_id" value={r.id} />
-                  <select name="status" defaultValue={r.status} className="rounded px-2 py-1 text-navy-900">
+                  <select name="status" defaultValue={r.status} className={smallSelectClass}>
                     <option value="reported">Reported</option>
                     <option value="processing">Processing</option>
                     <option value="resolved">Resolved</option>
                   </select>
-                  <button
-                    type="submit"
-                    className="rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
-                  >
+                  <Button type="submit" variant="primary">
                     Update
-                  </button>
+                  </Button>
                 </form>
               </li>
             ))}
@@ -395,49 +391,46 @@ export default async function EngagementDetailPage({
         <form action={createReturn} className="flex flex-col gap-3">
           <input type="hidden" name="engagement_id" value={engagementId} />
           <div className="flex gap-4">
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Store location</span>
-              <input type="text" name="store_location" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Store location</span>
+              <FormInput type="text" name="store_location" />
             </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Product name</span>
-              <input type="text" name="product_name" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Product name</span>
+              <FormInput type="text" name="product_name" />
             </label>
           </div>
           <div className="flex gap-4">
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Quantity</span>
-              <input type="number" min={0} name="quantity" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Quantity</span>
+              <FormInput type="number" min={0} name="quantity" />
             </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Order ID (optional)</span>
-              <input type="text" name="order_id" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Order ID (optional)</span>
+              <FormInput type="text" name="order_id" />
             </label>
           </div>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-navy-100">Reason</span>
-            <textarea name="reason" rows={2} className="rounded px-3 py-2 text-navy-900" />
+          <label className="flex flex-col gap-1">
+            <span className="text-ds-caption text-ds-mute">Reason</span>
+            <textarea name="reason" rows={2} className={textareaClass} />
           </label>
-          <button
-            type="submit"
-            className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-          >
+          <Button type="submit" variant="primary" className="w-fit">
             Report return
-          </button>
+          </Button>
         </form>
       </section>
 
-      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-        <h2 className="font-semibold text-teal-300">Refunds</h2>
+      <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+        <h2 className="text-ds-display-md">Refunds</h2>
 
         {!refunds || refunds.length === 0 ? (
-          <p className="text-sm text-navy-100">No refunds recorded yet.</p>
+          <p className="text-ds-body text-ds-body-sm">No refunds recorded yet.</p>
         ) : (
           <ul className="flex flex-col gap-3">
             {refunds.map((r) => (
-              <li key={r.id} className="rounded border border-navy-500 p-3 text-sm">
-                <p className="font-medium">R{Number(r.amount).toFixed(2)}</p>
-                <p className="text-xs text-navy-200">
+              <li key={r.id} className="rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm">
+                <p className="font-medium text-ds-ink">R{Number(r.amount).toFixed(2)}</p>
+                <p className="text-ds-caption text-ds-mute">
                   {r.reason && `${r.reason} · `}
                   {new Date(r.created_at).toLocaleDateString()} · status: {r.status}
                 </p>
@@ -445,18 +438,15 @@ export default async function EngagementDetailPage({
                   <form action={updateRefundStatus} className="mt-2 flex items-center gap-2">
                     <input type="hidden" name="engagement_id" value={engagementId} />
                     <input type="hidden" name="refund_id" value={r.id} />
-                    <select name="status" defaultValue={r.status} className="rounded px-2 py-1 text-navy-900">
+                    <select name="status" defaultValue={r.status} className={smallSelectClass}>
                       <option value="pending">Pending</option>
                       <option value="approved">Approved</option>
                       <option value="rejected">Rejected</option>
                       <option value="paid">Paid</option>
                     </select>
-                    <button
-                      type="submit"
-                      className="rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
-                    >
+                    <Button type="submit" variant="primary">
                       Update
-                    </button>
+                    </Button>
                   </form>
                 )}
               </li>
@@ -467,43 +457,40 @@ export default async function EngagementDetailPage({
         <form action={createRefund} className="flex flex-col gap-3">
           <input type="hidden" name="engagement_id" value={engagementId} />
           <div className="flex gap-4">
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Amount (R)</span>
-              <input type="number" min={0} step="0.01" name="amount" required className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Amount (R)</span>
+              <FormInput type="number" min={0} step="0.01" name="amount" required />
             </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Order ID (optional)</span>
-              <input type="text" name="order_id" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Order ID (optional)</span>
+              <FormInput type="text" name="order_id" />
             </label>
           </div>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-navy-100">Reason</span>
-            <textarea name="reason" rows={2} className="rounded px-3 py-2 text-navy-900" />
+          <label className="flex flex-col gap-1">
+            <span className="text-ds-caption text-ds-mute">Reason</span>
+            <textarea name="reason" rows={2} className={textareaClass} />
           </label>
-          <button
-            type="submit"
-            className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-          >
+          <Button type="submit" variant="primary" className="w-fit">
             Request refund
-          </button>
+          </Button>
         </form>
       </section>
 
-      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-        <h2 className="font-semibold text-teal-300">Damages</h2>
+      <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+        <h2 className="text-ds-display-md">Damages</h2>
 
         {damagesWithUrls.length === 0 ? (
-          <p className="text-sm text-navy-100">No damages reported yet.</p>
+          <p className="text-ds-body text-ds-body-sm">No damages reported yet.</p>
         ) : (
           <ul className="flex flex-col gap-3">
             {damagesWithUrls.map((d) => (
-              <li key={d.id} className="rounded border border-navy-500 p-3 text-sm">
+              <li key={d.id} className="rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm">
                 <p>{d.description ?? "Damage report"}</p>
-                <p className="text-xs text-navy-200">{new Date(d.reported_at).toLocaleDateString()}</p>
+                <p className="text-ds-caption text-ds-mute">{new Date(d.reported_at).toLocaleDateString()}</p>
                 {d.photoUrls.length > 0 && (
                   <div className="mt-2 grid grid-cols-4 gap-2">
                     {d.photoUrls.map((url) => (
-                      <div key={url} className="relative h-16 w-full overflow-hidden rounded">
+                      <div key={url} className="relative h-16 w-full overflow-hidden rounded-ds-sm">
                         <Image src={url} alt="" fill sizes="80px" className="object-cover" />
                       </div>
                     ))}
@@ -516,39 +503,36 @@ export default async function EngagementDetailPage({
 
         <form action={createDamage} className="flex flex-col gap-3">
           <input type="hidden" name="engagement_id" value={engagementId} />
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-navy-100">Order ID (optional)</span>
-            <input type="text" name="order_id" className="rounded px-3 py-2 text-navy-900" />
+          <label className="flex flex-col gap-1">
+            <span className="text-ds-caption text-ds-mute">Order ID (optional)</span>
+            <FormInput type="text" name="order_id" />
           </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-navy-100">Description</span>
-            <textarea name="description" rows={2} className="rounded px-3 py-2 text-navy-900" />
+          <label className="flex flex-col gap-1">
+            <span className="text-ds-caption text-ds-mute">Description</span>
+            <textarea name="description" rows={2} className={textareaClass} />
           </label>
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-navy-100">Photos</span>
+          <label className="flex flex-col gap-1">
+            <span className="text-ds-caption text-ds-mute">Photos</span>
             <input type="file" name="photos" accept="image/png,image/jpeg,image/webp" multiple />
-            <span className="text-xs text-navy-200">Up to 4 photos, 5MB each.</span>
+            <span className="text-ds-caption text-ds-mute">Up to 4 photos, 5MB each.</span>
           </label>
-          <button
-            type="submit"
-            className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-          >
+          <Button type="submit" variant="primary" className="w-fit">
             Report damage
-          </button>
+          </Button>
         </form>
       </section>
 
-      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-        <h2 className="font-semibold text-teal-300">Marketing campaigns</h2>
+      <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+        <h2 className="text-ds-display-md">Marketing campaigns</h2>
 
         {campaignsWithAssets.length === 0 ? (
-          <p className="text-sm text-navy-100">No campaigns yet.</p>
+          <p className="text-ds-body text-ds-body-sm">No campaigns yet.</p>
         ) : (
           <ul className="flex flex-col gap-4">
             {campaignsWithAssets.map((c) => (
-              <li key={c.id} className="rounded border border-navy-500 p-3 text-sm">
-                <p className="font-medium">{c.name}</p>
-                <p className="text-xs text-navy-200">
+              <li key={c.id} className="rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm">
+                <p className="font-medium text-ds-ink">{c.name}</p>
+                <p className="text-ds-caption text-ds-mute">
                   {c.start_date && `${c.start_date} → ${c.end_date ?? "?"} · `}
                   Budget: {c.budget != null ? `R${Number(c.budget).toFixed(2)}` : "-"} · Spent: R
                   {Number(c.cost_actual ?? 0).toFixed(2)} · status: {c.status}
@@ -557,35 +541,32 @@ export default async function EngagementDetailPage({
                 <form action={updateCampaign} className="mt-2 flex flex-wrap items-center gap-2">
                   <input type="hidden" name="engagement_id" value={engagementId} />
                   <input type="hidden" name="campaign_id" value={c.id} />
-                  <select name="status" defaultValue={c.status} className="rounded px-2 py-1 text-navy-900">
+                  <select name="status" defaultValue={c.status} className={smallSelectClass}>
                     <option value="planned">Planned</option>
                     <option value="active">Active</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
-                  <input
+                  <FormInput
                     type="number"
                     min={0}
                     step="0.01"
                     name="cost_actual"
                     defaultValue={c.cost_actual ?? 0}
-                    className="w-28 rounded px-2 py-1 text-navy-900"
+                    className="w-28"
                   />
-                  <button
-                    type="submit"
-                    className="rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
-                  >
+                  <Button type="submit" variant="primary">
                     Update
-                  </button>
+                  </Button>
                 </form>
 
                 {c.assets.length > 0 && (
                   <ul className="mt-3 flex flex-col gap-1">
                     {c.assets.map((a) => (
-                      <li key={a.id} className="text-xs text-navy-200">
+                      <li key={a.id} className="text-ds-caption text-ds-mute">
                         {a.asset_type === "design" ? "Design" : "Promo material"} ·{" "}
                         {a.signedUrl ? (
-                          <a href={a.signedUrl} target="_blank" rel="noreferrer" className="text-teal-300 underline">
+                          <a href={a.signedUrl} target="_blank" rel="noreferrer" className="text-ds-link underline">
                             view
                           </a>
                         ) : (
@@ -600,17 +581,14 @@ export default async function EngagementDetailPage({
                 <form action={uploadMarketingAsset} className="mt-3 flex flex-wrap items-center gap-2">
                   <input type="hidden" name="engagement_id" value={engagementId} />
                   <input type="hidden" name="campaign_id" value={c.id} />
-                  <select name="asset_type" defaultValue="design" className="rounded px-2 py-1 text-navy-900">
+                  <select name="asset_type" defaultValue="design" className={smallSelectClass}>
                     <option value="design">Design</option>
                     <option value="promo_material">Promo material</option>
                   </select>
                   <input type="file" name="file" accept="image/png,image/jpeg,image/webp,application/pdf" required />
-                  <button
-                    type="submit"
-                    className="rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
-                  >
+                  <Button type="submit" variant="primary">
                     Upload
-                  </button>
+                  </Button>
                 </form>
               </li>
             ))}
@@ -619,52 +597,49 @@ export default async function EngagementDetailPage({
 
         <form action={createCampaign} className="flex flex-col gap-3">
           <input type="hidden" name="engagement_id" value={engagementId} />
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="text-navy-100">Campaign name</span>
-            <input type="text" name="name" required className="rounded px-3 py-2 text-navy-900" />
+          <label className="flex flex-col gap-1">
+            <span className="text-ds-caption text-ds-mute">Campaign name</span>
+            <FormInput type="text" name="name" required />
           </label>
           <div className="flex gap-4">
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Budget (R)</span>
-              <input type="number" min={0} step="0.01" name="budget" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Budget (R)</span>
+              <FormInput type="number" min={0} step="0.01" name="budget" />
             </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">Start date</span>
-              <input type="date" name="start_date" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Start date</span>
+              <FormInput type="date" name="start_date" />
             </label>
-            <label className="flex flex-1 flex-col gap-1 text-sm">
-              <span className="text-navy-100">End date</span>
-              <input type="date" name="end_date" className="rounded px-3 py-2 text-navy-900" />
+            <label className="flex flex-1 flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">End date</span>
+              <FormInput type="date" name="end_date" />
             </label>
           </div>
-          <button
-            type="submit"
-            className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-          >
+          <Button type="submit" variant="primary" className="w-fit">
             Create campaign
-          </button>
+          </Button>
         </form>
       </section>
 
-      <section className="flex flex-col gap-3 rounded border border-navy-500 p-4">
-        <h2 className="font-semibold text-teal-300">Payment terms</h2>
-        <p className="text-xs text-navy-200">
+      <section className="flex flex-col gap-3 rounded-ds-sm border border-ds-hairline p-ds-lg">
+        <h2 className="text-ds-display-md">Payment terms</h2>
+        <p className="text-ds-caption text-ds-mute">
           Reference only — Reppit doesn&apos;t move money for engagements. The business pays the provider
           directly, off-platform, using these terms.
         </p>
 
         {paymentTerms ? (
-          <div className="rounded border border-navy-500 p-3 text-sm">
-            <p className="font-medium">
+          <div className="rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm">
+            <p className="font-medium text-ds-ink">
               {paymentTerms.payment_type === "commission"
                 ? `${paymentTerms.commission_pct}% commission`
                 : `R${Number(paymentTerms.retainer_amount).toFixed(2)} retainer`}{" "}
               · {paymentTerms.frequency.replace("_", " ")}
             </p>
             {amountOwed != null && (
-              <p className="mt-1 text-teal-300">Amount owed (calculated): R{amountOwed.toFixed(2)}</p>
+              <p className="mt-1 text-ds-success">Amount owed (calculated): R{amountOwed.toFixed(2)}</p>
             )}
-            <p className="mt-2 text-xs text-navy-200">
+            <p className="mt-2 text-ds-caption text-ds-mute">
               Payout recipient:{" "}
               {paymentTerms.paystack_recipient_code
                 ? `registered ${new Date(paymentTerms.recipient_added_at!).toLocaleDateString()}`
@@ -672,30 +647,30 @@ export default async function EngagementDetailPage({
             </p>
           </div>
         ) : (
-          <p className="text-sm text-navy-100">No payment terms set yet.</p>
+          <p className="text-ds-body text-ds-body-sm">No payment terms set yet.</p>
         )}
 
         {isBusiness && (
           <form action={setPaymentTerms} className="flex flex-col gap-3">
             <input type="hidden" name="engagement_id" value={engagementId} />
             <div className="flex gap-4">
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Payment type</span>
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Payment type</span>
                 <select
                   name="payment_type"
                   defaultValue={paymentTerms?.payment_type ?? "commission"}
-                  className="rounded px-3 py-2 text-navy-900"
+                  className={selectClass}
                 >
                   <option value="commission">Commission</option>
                   <option value="retainer">Retainer</option>
                 </select>
               </label>
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Frequency</span>
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Frequency</span>
                 <select
                   name="frequency"
                   defaultValue={paymentTerms?.frequency ?? "monthly"}
-                  className="rounded px-3 py-2 text-navy-900"
+                  className={selectClass}
                 >
                   <option value="per_order">Per order</option>
                   <option value="weekly">Weekly</option>
@@ -704,66 +679,58 @@ export default async function EngagementDetailPage({
               </label>
             </div>
             <div className="flex gap-4">
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Commission %</span>
-                <input
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Commission %</span>
+                <FormInput
                   type="number"
                   min={0}
                   max={100}
                   step="0.01"
                   name="commission_pct"
                   defaultValue={paymentTerms?.commission_pct ?? ""}
-                  className="rounded px-3 py-2 text-navy-900"
                 />
               </label>
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Retainer amount (R)</span>
-                <input
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Retainer amount (R)</span>
+                <FormInput
                   type="number"
                   min={0}
                   step="0.01"
                   name="retainer_amount"
                   defaultValue={paymentTerms?.retainer_amount ?? ""}
-                  className="rounded px-3 py-2 text-navy-900"
                 />
               </label>
             </div>
-            <button
-              type="submit"
-              className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-            >
+            <Button type="submit" variant="primary" className="w-fit">
               {paymentTerms ? "Update terms" : "Set terms"}
-            </button>
+            </Button>
           </form>
         )}
 
         {isProvider && paymentTerms && (
-          <form action={setPaymentRecipient} className="flex flex-col gap-3 border-t border-navy-500 pt-3">
+          <form action={setPaymentRecipient} className="flex flex-col gap-3 border-t border-ds-hairline pt-3">
             <input type="hidden" name="engagement_id" value={engagementId} />
-            <p className="text-xs text-navy-200">
+            <p className="text-ds-caption text-ds-mute">
               Register your bank account with Paystack to receive a payout reference. Reppit never stores your
               account details — only the reference Paystack returns.
             </p>
             <div className="flex gap-4">
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Account holder name</span>
-                <input type="text" name="account_name" required className="rounded px-3 py-2 text-navy-900" />
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Account holder name</span>
+                <FormInput type="text" name="account_name" required />
               </label>
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Account number</span>
-                <input type="text" name="account_number" required className="rounded px-3 py-2 text-navy-900" />
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Account number</span>
+                <FormInput type="text" name="account_number" required />
               </label>
-              <label className="flex flex-1 flex-col gap-1 text-sm">
-                <span className="text-navy-100">Bank code</span>
-                <input type="text" name="bank_code" required className="rounded px-3 py-2 text-navy-900" />
+              <label className="flex flex-1 flex-col gap-1">
+                <span className="text-ds-caption text-ds-mute">Bank code</span>
+                <FormInput type="text" name="bank_code" required />
               </label>
             </div>
-            <button
-              type="submit"
-              className="w-fit rounded bg-teal-500 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-600"
-            >
+            <Button type="submit" variant="primary" className="w-fit">
               {paymentTerms.paystack_recipient_code ? "Re-register recipient" : "Register recipient"}
-            </button>
+            </Button>
           </form>
         )}
       </section>

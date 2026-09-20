@@ -15,7 +15,7 @@ type OrderSummary = {
 
 function OrderList({ orders, emptyText }: { orders: OrderSummary[] | null; emptyText: string }) {
   if (!orders || orders.length === 0) {
-    return <p className="text-sm text-navy-100">{emptyText}</p>;
+    return <p className="text-ds-body text-ds-body-md">{emptyText}</p>;
   }
   return (
     <ul className="flex flex-col gap-2">
@@ -23,14 +23,14 @@ function OrderList({ orders, emptyText }: { orders: OrderSummary[] | null; empty
         <li key={o.id}>
           <Link
             href={`/orders/${o.id}`}
-            className="flex items-center justify-between rounded border border-navy-500 p-3 text-sm hover:bg-navy-800"
+            className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-md text-ds-body-sm hover:border-ds-hairline-secondary"
           >
             <span>{o.catalogues?.name ?? o.provider_profiles?.name ?? "Order"}</span>
             <span className="capitalize">{o.stage.replace(/_/g, " ")}</span>
             <span>
               {o.currency} {o.price_total ?? "-"}
             </span>
-            <span className="text-navy-200">{new Date(o.created_at).toLocaleDateString()}</span>
+            <span className="text-ds-mute">{new Date(o.created_at).toLocaleDateString()}</span>
           </Link>
         </li>
       ))}
@@ -88,18 +88,18 @@ export default async function OrdersPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Orders</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Orders</h1>
 
       {account?.role === "business" && (
         <>
           <section className="flex flex-col gap-2">
-            <h2 className="font-semibold text-teal-300">Orders you placed</h2>
+            <h2 className="text-ds-display-md">Orders you placed</h2>
             <OrderList orders={buyerOrders} emptyText="You haven't placed any orders yet." />
           </section>
 
           <section className="flex flex-col gap-2">
-            <h2 className="font-semibold text-teal-300">Orders on your catalogues</h2>
+            <h2 className="text-ds-display-md">Orders on your catalogues</h2>
             <OrderList orders={catalogueSellerOrders} emptyText="No orders on your catalogues yet." />
           </section>
         </>
@@ -107,12 +107,12 @@ export default async function OrdersPage() {
 
       {account?.role === "provider" && (
         <section className="flex flex-col gap-2">
-          <h2 className="font-semibold text-teal-300">Orders for your services</h2>
+          <h2 className="text-ds-display-md">Orders for your services</h2>
           <OrderList orders={providerSellerOrders} emptyText="No orders yet." />
         </section>
       )}
 
-      <Link href="/dashboard" className="text-sm text-teal-300 underline">
+      <Link href="/dashboard" className="text-ds-body-sm text-ds-link underline">
         Back to dashboard
       </Link>
     </main>

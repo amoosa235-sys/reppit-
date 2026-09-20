@@ -58,29 +58,29 @@ export default async function EngagementsPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Engagements</h1>
+    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Engagements</h1>
 
       {engagements.length === 0 ? (
-        <p className="text-navy-100">No engagements yet.</p>
+        <p className="text-ds-body text-ds-body-md">No engagements yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {engagements.map((e) => (
             <li key={e.id}>
               <Link
                 href={`/engagements/${e.id}`}
-                className="flex items-center justify-between rounded border border-navy-500 p-4 hover:bg-navy-800"
+                className="flex items-center justify-between rounded-ds-sm border border-ds-hairline p-ds-lg hover:border-ds-hairline-secondary"
               >
                 <span>{e.provider_profiles?.name ?? e.businesses_name ?? "Engagement"}</span>
-                <span className="capitalize text-navy-200">{e.status}</span>
-                <span className="text-navy-200">{new Date(e.started_at).toLocaleDateString()}</span>
+                <span className="capitalize text-ds-mute">{e.status}</span>
+                <span className="text-ds-mute">{new Date(e.started_at).toLocaleDateString()}</span>
               </Link>
             </li>
           ))}
         </ul>
       )}
 
-      <Link href="/dashboard" className="text-sm text-teal-300 underline">
+      <Link href="/dashboard" className="text-ds-body-sm text-ds-link underline">
         Back to dashboard
       </Link>
     </main>

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LOAD_BOOKING_COST } from "@/lib/loads";
 import { bookLoad } from "./actions";
+import { Button, FormInput } from "@/components/ui";
 
 type LoadRow = {
   id: string;
@@ -51,56 +51,52 @@ export default async function LoadsBrowsePage({
   );
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 bg-navy px-6 py-12 text-white">
-      <h1 className="text-2xl font-bold text-teal-300">Consolidated loads</h1>
+    <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-6 bg-ds-canvas px-6 py-12 text-ds-ink">
+      <h1 className="text-ds-display-md">Consolidated loads</h1>
 
-      {error && <p className="text-sm text-red-300">Could not load loads: {error.message}</p>}
-      {params.error && <p className="text-sm text-red-300">{params.error}</p>}
-      {params.booked && <p className="text-sm text-teal-300">Load booked.</p>}
+      {error && <p className="text-ds-body-sm text-red-400">Could not load loads: {error.message}</p>}
+      {params.error && <p className="text-ds-body-sm text-red-400">{params.error}</p>}
+      {params.booked && <p className="text-ds-body-sm text-ds-success">Load booked.</p>}
 
       {all.length === 0 && !error ? (
-        <p className="text-navy-100">No loads have been listed yet - check back soon.</p>
+        <p className="text-ds-body text-ds-body-md">No loads have been listed yet - check back soon.</p>
       ) : (
         <>
-          <form method="GET" className="flex flex-wrap items-end gap-4 rounded border border-navy-500 p-4">
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-navy-100">Search</span>
-              <input
+          <form method="GET" className="flex flex-wrap items-end gap-4 rounded-ds-sm border border-ds-hairline p-ds-lg">
+            <label className="flex flex-col gap-1">
+              <span className="text-ds-caption text-ds-mute">Search</span>
+              <FormInput
                 type="text"
                 name="q"
                 defaultValue={params.q ?? ""}
-                className="rounded px-3 py-2 text-navy-900"
                 placeholder="Destination or hub"
               />
             </label>
-            <button
-              type="submit"
-              className="rounded bg-teal-500 px-4 py-2 font-semibold text-white hover:bg-teal-600"
-            >
+            <Button type="submit" variant="primary">
               Search
-            </button>
-            <Link href="/loads" className="text-sm text-teal-300 underline">
+            </Button>
+            <Link href="/loads" className="text-ds-body-sm text-ds-link underline">
               Clear
             </Link>
           </form>
 
           {results.length === 0 ? (
-            <p className="text-navy-100">No loads match that search.</p>
+            <p className="text-ds-body text-ds-body-md">No loads match that search.</p>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {results.map((l) => {
                 const remaining = l.capacity != null ? l.capacity - l.capacity_booked : null;
                 return (
-                  <article key={l.id} className="flex flex-col gap-2 rounded border border-navy-500 p-4">
+                  <article key={l.id} className="flex flex-col gap-2 rounded-ds-sm border border-ds-hairline p-ds-lg">
                     <div className="flex items-center gap-2">
-                      <h2 className="font-semibold">{l.destination_region}</h2>
-                      <span className="rounded bg-teal-700 px-2 py-0.5 text-xs capitalize">{l.status}</span>
+                      <h2 className="font-medium text-ds-ink">{l.destination_region}</h2>
+                      <span className="rounded-ds-sm bg-ds-canvas-level-3 px-ds-sm py-0.5 text-ds-caption capitalize text-ds-ink">{l.status}</span>
                     </div>
-                    <p className="text-xs text-navy-200">
+                    <p className="text-ds-caption text-ds-mute">
                       {l.distribution_hubs?.name && `From ${l.distribution_hubs.name} · `}
                       Departs {l.departure_date}
                     </p>
-                    <p className="text-xs text-navy-200">
+                    <p className="text-ds-caption text-ds-mute">
                       {remaining != null ? `${remaining} of ${l.capacity} remaining` : "Capacity not set"}
                       {l.price_per_unit != null && ` · R${l.price_per_unit}/unit`}
                     </p>
@@ -108,23 +104,20 @@ export default async function LoadsBrowsePage({
                     {isBusiness && l.status === "open" && (
                       <form action={bookLoad} className="flex items-end gap-2">
                         <input type="hidden" name="load_id" value={l.id} />
-                        <label className="flex flex-col gap-1 text-xs">
-                          <span className="text-navy-100">Quantity</span>
-                          <input
+                        <label className="flex flex-col gap-1">
+                          <span className="text-ds-caption text-ds-mute">Quantity</span>
+                          <FormInput
                             type="number"
                             min={0}
                             step="0.01"
                             name="quantity"
                             required
-                            className="w-24 rounded px-2 py-1 text-navy-900"
+                            className="w-24"
                           />
                         </label>
-                        <button
-                          type="submit"
-                          className="rounded bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
-                        >
+                        <Button type="submit" variant="primary">
                           Book ({LOAD_BOOKING_COST} tokens)
-                        </button>
+                        </Button>
                       </form>
                     )}
                   </article>
